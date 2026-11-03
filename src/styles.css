@@ -1,0 +1,40 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #1b1a17;
+  color: #f4ead5;
+  font-family: 'Jersey 10', system-ui, sans-serif;
+}
+
+#game {
+  width: 100vw;
+  height: 100vh;
+}
+
+#game canvas {
+  image-rendering: pixelated;
+}
+
+/* Readable error box shown when a content JSON file is broken. */
+.error {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: #1b1a17;
+}
+.error[hidden] {
+  display: none;
+}
+.error pre {
+  max-width: 48rem;
+  white-space: pre-wrap;
+  font-family: ui-monospace, monospace;
+  background: #2c2a25;
+  border: 3px solid #c0392b;
+  padding: 1.5rem;
+  line-height: 1.5;
+}

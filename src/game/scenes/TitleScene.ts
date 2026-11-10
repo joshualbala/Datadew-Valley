@@ -12,12 +12,11 @@ import {
   paintBackground,
   riverCenter,
 } from '../art/titleScenery';
+import { flow } from '../flow';
 import { addMuteButton } from '../ui/muteButton';
+import { WOOD, WOOD_DARK, WOOD_LIGHT } from '../ui/theme';
 
 const UI_DEPTH = 500; // text and buttons sit above all scenery
-const WOOD = 0xc97c3a;
-const WOOD_LIGHT = 0xe39a55;
-const WOOD_DARK = 0x5b3a1e;
 
 /** Art-grid → screen coordinates. */
 const S = (v: number) => v * ART_PX;
@@ -141,8 +140,8 @@ export class TitleScene extends Phaser.Scene {
     this.started = true;
     this.cameras.main.fadeOut(600, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      // Step 2 replaces this with the flow runner (intro slides). Music keeps playing.
-      this.scene.start('Placeholder');
+      // On to the steps in content/flow.json (intro slides first). Music keeps playing.
+      flow.start(this);
     });
   }
 

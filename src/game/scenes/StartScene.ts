@@ -33,7 +33,7 @@ export class StartScene extends Phaser.Scene {
     const prompt = this.add
       .text(cx, cy + 10, text.prompt, { fontFamily: FONT, fontSize: '60px', color: '#fff4d6' })
       .setOrigin(0.5);
-    this.tweens.add({ targets: prompt, alpha: 0.55, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    this.tweens.add({ targets: prompt, alpha: 0.8, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
 
     if (text.soundNote) {
       this.add

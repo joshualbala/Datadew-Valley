@@ -48,7 +48,7 @@ The other hotspots stay (`vegetation-loss`, `community`, `gpu-racks`, `electrici
 - **Tiled** (open-source map editor) for every map. Its JSON export loads directly into Phaser. Hotspots, doors, spawn points, and effect zones are Tiled objects with properties, so the team places and moves them visually.
 - **Plain TS + DOM** for the website shell, pages, and pop-up overlays. A tiny hash router (`#/about`) is used because it works on GitHub Pages with no server config.
 - **Zod** to validate every content JSON file at load time and in CI, so a typo shows a clear error instead of a blank screen.
-- **Pixel font:** "Pixelify Sans" or "Press Start 2P" (both OFL).
+- **Pixel font:** "Jersey 10" (OFL, bundled via @fontsource), picked for legibility after comparing Pixelify Sans, Press Start 2P, VT323, Silkscreen, Tiny5 and DotGothic16. Change it in one place: `FONT` in `src/game/constants.ts`.
 - **Testing:** Vitest (schemas and cross-reference checks) and Playwright (smoke test).
 - **CI/CD:** a GitHub Action that lints, tests, builds, and deploys to Pages (Vite `base: '/Datadew-Valley/'`).
 
@@ -171,7 +171,7 @@ Each step is small and ends in something you can check yourself. **Workflow:** I
 
 | # | Step | Test it (done when…) |
 |---|---|---|
-| 1 | **Project setup + opening page.** Vite + TS + Phaser 3, `ui.json`/`audio.json` + Zod loader, "Click anywhere to begin" start screen (unlocks sound), bright pixel title screen (town hall left, data center right) with "Datadew Valley" and an Enter button, cozy synth melody + mute (M), `CLAUDE.md`, content tests | `npm run dev` shows the start screen; clicking plays the melody and shows the title screen. Enter (click or key) fades out. Editing the title in `public/content/ui.json` changes it on reload. Broken JSON shows a readable error. `npm test` and `npm run build` pass |
+| 1 | **Project setup + opening page.** Vite + TS + Phaser 3, `ui.json`/`audio.json` + Zod loader, "Click anywhere to begin" start screen (unlocks sound), bright pixel title screen (town hall left, data center right) with "Datadew Valley" and an Enter button, upbeat cozy synth melody "Picnic" + mute (M), `CLAUDE.md`, content tests | `npm run dev` shows the start screen; clicking plays the melody and shows the title screen. Enter (click or key) fades out. Editing the title in `public/content/ui.json` changes it on reload. Broken JSON shows a readable error. `npm test` and `npm run build` pass |
 | 2 | **Intro slides + "6 months later".** `flow.json` runner, generic `SequenceScene`, `sequences/intro.json` | Enter leads to click-through slides with captions from JSON, then a black "6 months later" card. Adding a slide in JSON shows it |
 | 3 | **Controls pop-up.** DOM pop-up, block registry (`text`, `image`, `stat`, `citation`) | After "6 months later", the controls pop-up appears with an audio note. Continue closes it |
 | 4 | **Valley map + Alex walking.** Generic `MapScene`, `scenes.json`, placeholder Tiled map, WASD/arrows, collisions, camera follow | Alex walks around, can't walk through water/buildings, the camera follows |

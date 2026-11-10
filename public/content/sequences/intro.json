@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "_description": "Intro slides, shown in order after the title screen. Each slide has a 'caption' (the text in the box under the picture; write \\n for a line break) and an 'illustration' (which built-in pixel picture to show). Built-in pictures: \"valley-home\" (Alex waving at the garden gate of their fenced cottage), \"town-meeting\" (neighbors outside the town hall looking at the data center plan), \"construction\" (bulldozers clearing the woods, a steel frame going up), \"data-center-opens\" (the finished data center lit up at dusk). Add, remove or reorder slides freely; a picture can be used more than once. 'music' (optional) = which track from audio.json plays during the slides.",
+  "_usedIn": "Simulation page → Intro slides (between the title screen and '6 months later')",
+  "music": "intro",
+  "slides": [
+    {
+      "_location": "Intro slide 1",
+      "illustration": "valley-home",
+      "caption": "PLACEHOLDER: Alex has lived in Datadew Valley for as long as anyone can remember. Mornings by the river, afternoons in the garden, evenings with the neighbors."
+    },
+    {
+      "_location": "Intro slide 2",
+      "illustration": "town-meeting",
+      "caption": "PLACEHOLDER: One spring, the town council announced a new neighbor: a data center. It promised jobs, tax money, and a place in the future."
+    },
+    {
+      "_location": "Intro slide 3",
+      "illustration": "construction",
+      "caption": "PLACEHOLDER: Within weeks, bulldozers cleared the woods by the river. Trucks rumbled past Alex's house day and night."
+    },
+    {
+      "_location": "Intro slide 4",
+      "illustration": "data-center-opens",
+      "caption": "PLACEHOLDER: By autumn it was finished. Its lights never went off, and a low hum settled over the valley."
+    }
+  ]
+}

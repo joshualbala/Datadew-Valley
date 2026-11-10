@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "_description": "The order of screens after the player presses Enter on the title screen. Steps run top to bottom. Step types: 'sequence' = a click-through slideshow ('sequence' is a file name in content/sequences/, without .json). 'card' = a black screen with one line of text ('text'), shown for 'holdSeconds' seconds; 'stopMusic': true fades the music out as it appears. More step types (pop-up, map) are added in later build steps.",
+  "_usedIn": "Simulation page → everything between the title screen and the game",
+  "steps": [
+    {
+      "_location": "Right after Enter on the title screen",
+      "type": "sequence",
+      "sequence": "intro"
+    },
+    {
+      "_location": "Black screen after the last intro slide",
+      "type": "card",
+      "text": "6 months later",
+      "holdSeconds": 2.5,
+      "stopMusic": true
+    }
+  ]
+}

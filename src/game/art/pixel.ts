@@ -1,4 +1,10 @@
-import Phaser from 'phaser';
+import type Phaser from 'phaser';
+
+/** The two Graphics methods the painter uses (kept minimal so tests can pass a fake). */
+export interface PixelTarget {
+  fillStyle(color: number, alpha?: number): unknown;
+  fillRect(x: number, y: number, w: number, h: number): unknown;
+}
 
 /**
  * Tiny helper for drawing placeholder pixel art with Phaser Graphics.
@@ -7,13 +13,25 @@ import Phaser from 'phaser';
  */
 export class PixelPainter {
   constructor(
-    private g: Phaser.GameObjects.Graphics,
+    private g: PixelTarget,
     public readonly size = 2,
+    private ox = 0,
+    private oy = 0,
   ) {}
+
+  /** A painter whose (0, 0) is at (x, y) of this one. Lets a drawing made for its own texture be reused inside a bigger picture. */
+  at(x: number, y: number): PixelPainter {
+    return new PixelPainter(this.g, this.size, this.ox + Math.round(x), this.oy + Math.round(y));
+  }
 
   rect(x: number, y: number, w: number, h: number, color: number, alpha = 1): this {
     this.g.fillStyle(color, alpha);
-    this.g.fillRect(Math.round(x) * this.size, Math.round(y) * this.size, Math.round(w) * this.size, Math.round(h) * this.size);
+    this.g.fillRect(
+      (Math.round(x) + this.ox) * this.size,
+      (Math.round(y) + this.oy) * this.size,
+      Math.round(w) * this.size,
+      Math.round(h) * this.size,
+    );
     return this;
   }
 

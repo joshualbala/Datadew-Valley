@@ -1,8 +1,8 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { contentFiles } from '../src/content/files';
-import { ContentError, parseContent } from '../src/content/loader';
+import { contentCollections, contentFiles } from '../src/content/files';
+import { ContentError, collectionFiles, parseContent, type FileContent } from '../src/content/loader';
 import { UiSchema } from '../src/content/schemas';
 
 const contentDir = resolve(__dirname, '../public/content');
@@ -12,6 +12,26 @@ describe('content files', () => {
     it(`${path} (${key}) is valid and self-describing`, () => {
       const text = readFileSync(resolve(contentDir, path), 'utf8');
       expect(() => parseContent(path, text, schema)).not.toThrow();
+    });
+  }
+});
+
+/** Parse every registered file from disk (same as the browser does at startup). */
+function readFiles(): FileContent {
+  return Object.fromEntries(
+    Object.entries(contentFiles).map(([key, { path, schema }]) => [
+      key,
+      parseContent(path, readFileSync(resolve(contentDir, path), 'utf8'), schema),
+    ]),
+  ) as FileContent;
+}
+
+describe('content collections', () => {
+  for (const [key, name, path] of collectionFiles(readFiles())) {
+    it(`${path} (referenced as ${key} "${name}") exists, is valid and self-describing`, () => {
+      const full = resolve(contentDir, path);
+      expect(existsSync(full), `public/content/${path} is missing`).toBe(true);
+      expect(() => parseContent(path, readFileSync(full, 'utf8'), contentCollections[key].schema)).not.toThrow();
     });
   }
 });

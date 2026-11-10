@@ -1,11 +1,16 @@
 {
   "schemaVersion": 1,
-  "_description": "Background music. Each track under 'music' uses EITHER 'synth' (name of a built-in melody in src/game/audio/songs/, e.g. \"picnic\" = upbeat and cozy, \"meadow\" = slow and wistful) OR 'file' (path to an mp3/ogg inside public/, e.g. \"assets/audio/title.mp3\"). 'volume' is 0 to 1.",
-  "_usedIn": "Simulation page → Start screen, Title screen, Intro slides",
+  "_description": "Background music. Each track under 'music' uses EITHER 'synth' (name of a built-in melody in src/game/audio/songs/, e.g. \"picnic\" = upbeat and cozy, \"meadow\" = slow and warm, \"overcast\" = slow, gray and wistful) OR 'file' (path to an mp3/ogg inside public/, e.g. \"assets/audio/title.mp3\"). 'volume' is 0 to 1.",
+  "_usedIn": "Simulation page → Start screen, Title screen, Intro slides (a slideshow picks its track with \"music\" in its sequences/*.json file)",
   "music": {
     "title": {
-      "_location": "Starts after the first click ('Click anywhere to begin'), plays on the opening page and through the intro slides. Fades out at '6 months later' (Step 2).",
+      "_location": "Starts after the first click ('Click anywhere to begin') and plays on the opening page.",
       "synth": "picnic",
+      "volume": 0.75
+    },
+    "intro": {
+      "_location": "Intro slides (the title music crossfades into this). Fades out at '6 months later'.",
+      "synth": "overcast",
       "volume": 0.75
     }
   }

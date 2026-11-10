@@ -22,4 +22,10 @@ Vite + TypeScript + Phaser 3.90 (not Phaser 4), Zod 4 for content validation, Vi
 
 **Add a scene:** create `src/game/scenes/<Name>Scene.ts` → add it to the `scene` list in `src/game/game.ts`.
 
+**Add a flow step type:** add its schema to `FlowStepSchema` in `src/content/schemas.ts` → add a handler in `src/game/flow.ts` (usually `scene.scene.start('<Scene>', step)`); the scene calls `flow.next(this)` when done.
+
+**Add a slide illustration:** all art is drawn in code (no image files). Create `src/game/art/illustrations/<name>.ts` exporting an `Illustration` (`paint` = still parts on the art grid: 420×180 by default, or set `scale: 3` to zoom in on a 280×120 grid, `animate` = moving sprites via the `IllustrationStage`; see `valleyHome.ts`, helpers in `common.ts`) → register it in `illustrations/index.ts` → list its name in the sequence file's `_description`. Keep illustrations free of Phaser value imports so tests can paint them.
+
+**Add a slideshow:** create `public/content/sequences/<name>.json` (`music` = optional track key from `audio.json`, `slides: [{ illustration, caption }]`) and reference it from a `sequence` step in `flow.json`; the loader loads any sequence that `flow.json` refers to (see `contentCollections` in `src/content/files.ts`).
+
 **Add music:** either drop an mp3/ogg in `public/assets/audio/` and add a track with `"file": "assets/audio/x.mp3"` in `audio.json`, or write a synth song in `src/game/audio/songs/<name>.ts` (see `meadow.ts`), register it in `songs/index.ts`, and use `"synth": "<name>"`. Play it from a scene with `audio.playMusic('<trackKey>', getContent().audio.music.<trackKey>)`.

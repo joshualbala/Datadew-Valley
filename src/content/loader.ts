@@ -1,9 +1,21 @@
 import { z } from 'zod';
-import { contentFiles, type ContentKey } from './files';
+import { contentCollections, contentFiles, type CollectionKey, type ContentKey } from './files';
 
-export type Content = {
+export type FileContent = {
   [K in ContentKey]: z.infer<(typeof contentFiles)[K]['schema']>;
 };
+
+export type Content = FileContent & {
+  [K in CollectionKey]: Record<string, z.infer<(typeof contentCollections)[K]['schema']>>;
+};
+
+/** Every collection file the loaded content refers to, as [collection, name, path]. */
+export function collectionFiles(files: FileContent): [CollectionKey, string, string][] {
+  return (Object.keys(contentCollections) as CollectionKey[]).flatMap((key) => {
+    const { dir, names } = contentCollections[key];
+    return [...new Set(names(files))].map((name) => [key, name, `${dir}/${name}.json`] as [CollectionKey, string, string]);
+  });
+}
 
 /** Thrown when a content file is missing, isn't valid JSON, or fails its schema. */
 export class ContentError extends Error {
@@ -38,12 +50,22 @@ async function loadOne<S extends z.ZodType>(file: string, schema: S): Promise<z.
   return parseContent(file, await res.text(), schema);
 }
 
-/** Load and validate every file listed in contentFiles. */
+/** Load and validate every file listed in contentFiles, then every collection file they refer to. */
 export async function loadContent(): Promise<Content> {
   const entries = await Promise.all(
     (Object.keys(contentFiles) as ContentKey[]).map(
       async (key) => [key, await loadOne(contentFiles[key].path, contentFiles[key].schema)] as const,
     ),
   );
-  return Object.fromEntries(entries) as Content;
+  const files = Object.fromEntries(entries) as FileContent;
+
+  const collections = Object.fromEntries(
+    (Object.keys(contentCollections) as CollectionKey[]).map((key) => [key, {} as Record<string, unknown>]),
+  );
+  await Promise.all(
+    collectionFiles(files).map(async ([key, name, path]) => {
+      collections[key][name] = await loadOne(path, contentCollections[key].schema);
+    }),
+  );
+  return { ...files, ...collections } as Content;
 }

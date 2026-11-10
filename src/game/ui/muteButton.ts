@@ -29,7 +29,7 @@ export function addMuteButton(
   speakerTextures(scene);
   const bg = scene.add.rectangle(0, 0, 56, 50, DARK, 0.6).setStrokeStyle(3, DARK);
   const icon = scene.add.image(0, 0, audio.muted ? 'icon-sound-off' : 'icon-sound-on');
-  const button = scene.add.container(at.x, at.y, [bg, icon]).setDepth(depth).setSize(56, 50);
+  const button = scene.add.container(at.x, at.y, [bg, icon]).setDepth(depth).setSize(56, 50).setScrollFactor(0);
   button.setInteractive({ useHandCursor: true });
   button.on('pointerover', () => bg.setFillStyle(DARK, 0.85));
   button.on('pointerout', () => bg.setFillStyle(DARK, 0.6));

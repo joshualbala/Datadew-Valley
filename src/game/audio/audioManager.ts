@@ -1,3 +1,5 @@
+import { recordings } from './recordings';
+import { playSfx, type SfxName, type SfxOptions } from './sfx';
 import { songs } from './songs';
 import { FilePlayer, SynthPlayer, type MusicPlayer } from './synth';
 
@@ -7,7 +9,32 @@ export interface MusicTrack {
   volume: number;
 }
 
+export interface SoundDef {
+  synth?: string;
+  file?: string;
+  volume: number;
+}
+
+/** A looping sound that can be paused, resumed, faded and stopped. */
+export interface SoundHandle {
+  readonly playing: boolean;
+  play(): void;
+  pause(): void;
+  /** 0–1, relative to the sound's own volume. */
+  setVolume(volume: number, rampSeconds?: number): void;
+  stop(fadeSeconds?: number): void;
+}
+
 const MUTE_KEY = 'datadew:muted';
+
+/** Remembered mute setting (storage can be missing or blocked, e.g. private windows or tests). */
+function readMuted(): boolean {
+  try {
+    return localStorage.getItem(MUTE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
 
 /**
  * One place for all game audio: creates the AudioContext after the first
@@ -19,7 +46,10 @@ class AudioManager {
   private current: { key: string; player: MusicPlayer } | null = null;
   private pending: { key: string; track: MusicTrack } | null = null;
   private listeners = new Set<(muted: boolean) => void>();
-  muted = localStorage.getItem(MUTE_KEY) === '1';
+  private buffers = new Map<string, Promise<AudioBuffer | null>>();
+  private sfxGain: GainNode | null = null;
+  private sfxVolume = 0.5;
+  muted = readMuted();
 
   /** Listen for the visitor's first click/keypress anywhere and unlock audio then. */
   armUnlock(): void {
@@ -75,6 +105,113 @@ class AudioManager {
     this.current = { key, player };
   }
 
+  /** Volume of small sound effects (from audio.json → sfxVolume). */
+  setSfxVolume(volume: number): void {
+    this.sfxVolume = volume;
+    if (this.sfxGain) this.sfxGain.gain.value = volume;
+  }
+
+  /** Play a small effect (pop-up chime, footstep, cough). Silent until audio is unlocked. */
+  sfx(name: SfxName, opts?: SfxOptions): void {
+    if (!this.ctx || !this.master || this.sfxVolume === 0) return;
+    if (!this.sfxGain) {
+      this.sfxGain = this.ctx.createGain();
+      this.sfxGain.gain.value = this.sfxVolume;
+      this.sfxGain.connect(this.master);
+    }
+    playSfx(this.ctx, this.sfxGain, name, opts);
+  }
+
+  /**
+   * A looping sound (e.g. the data center recording). Returns a handle right
+   * away; the audio starts once it is loaded/synthesized and audio is unlocked.
+   */
+  sound(key: string, def: SoundDef): SoundHandle {
+    const self = this;
+    let source: AudioBufferSourceNode | null = null;
+    let gain: GainNode | null = null;
+    let wantPlaying = false;
+    let level = 1;
+    let startedAt = 0;
+    let offset = 0;
+    let stopped = false;
+
+    const start = async () => {
+      const ctx = self.ctx;
+      if (!ctx || !self.master || stopped || source) return;
+      const buffer = await self.buffer(key, def);
+      if (!buffer || !wantPlaying || stopped || source) return;
+      if (!gain) {
+        gain = ctx.createGain();
+        gain.gain.value = def.volume * level;
+        gain.connect(self.master);
+      }
+      source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.loop = true;
+      source.connect(gain);
+      startedAt = ctx.currentTime - offset;
+      source.start(0, offset % buffer.duration);
+    };
+    const halt = () => {
+      if (!source || !self.ctx) return;
+      offset = self.ctx.currentTime - startedAt;
+      source.stop();
+      source.disconnect();
+      source = null;
+    };
+
+    return {
+      get playing() {
+        return wantPlaying;
+      },
+      play() {
+        if (stopped) return;
+        wantPlaying = true;
+        void start();
+      },
+      pause() {
+        wantPlaying = false;
+        halt();
+      },
+      setVolume(v: number, ramp = 0.1) {
+        level = v;
+        if (gain && self.ctx) gain.gain.setTargetAtTime(def.volume * v, self.ctx.currentTime, ramp);
+      },
+      stop(fade = 0.4) {
+        stopped = true;
+        wantPlaying = false;
+        if (gain && self.ctx) gain.gain.setTargetAtTime(0, self.ctx.currentTime, fade / 3);
+        window.setTimeout(halt, fade * 1000 + 50);
+      },
+    };
+  }
+
+  /** Decode a file or synthesize a built-in recording once, then reuse it. */
+  private buffer(key: string, def: SoundDef): Promise<AudioBuffer | null> {
+    const ctx = this.ctx!;
+    let p = this.buffers.get(key);
+    if (!p) {
+      p = (async () => {
+        if (def.file) {
+          const res = await fetch(`${import.meta.env.BASE_URL}${def.file}`);
+          return ctx.decodeAudioData(await res.arrayBuffer());
+        }
+        const make = recordings[def.synth ?? ''];
+        if (!make) {
+          console.warn(`Unknown synth sound "${def.synth}"`);
+          return null;
+        }
+        const samples = make(ctx.sampleRate);
+        const buf = ctx.createBuffer(1, samples.length, ctx.sampleRate);
+        buf.copyToChannel(samples as Float32Array<ArrayBuffer>, 0);
+        return buf;
+      })();
+      this.buffers.set(key, p);
+    }
+    return p;
+  }
+
   stopMusic(fadeSeconds = 2): void {
     this.pending = null;
     this.current?.player.stop(fadeSeconds);
@@ -83,7 +220,11 @@ class AudioManager {
 
   setMuted(muted: boolean): void {
     this.muted = muted;
-    localStorage.setItem(MUTE_KEY, muted ? '1' : '0');
+    try {
+      localStorage.setItem(MUTE_KEY, muted ? '1' : '0');
+    } catch {
+      /* storage blocked: mute just won't be remembered */
+    }
     if (this.ctx && this.master) {
       this.master.gain.setTargetAtTime(muted ? 0 : 1, this.ctx.currentTime, 0.05);
     }

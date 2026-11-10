@@ -1,4 +1,4 @@
-import { AudioSchema, FlowSchema, SequenceSchema, UiSchema, type FlowContent } from './schemas';
+import { AudioSchema, FlowSchema, HudSchema, MapSchema, PopupsSchema, SequenceSchema, UiSchema, type FlowContent } from './schemas';
 
 /**
  * Registry of every content JSON file the game loads.
@@ -10,6 +10,8 @@ export const contentFiles = {
   ui: { path: 'ui.json', schema: UiSchema },
   audio: { path: 'audio.json', schema: AudioSchema },
   flow: { path: 'flow.json', schema: FlowSchema },
+  popups: { path: 'popups.json', schema: PopupsSchema },
+  hud: { path: 'hud.json', schema: HudSchema },
 } as const;
 
 export type ContentKey = keyof typeof contentFiles;
@@ -26,6 +28,11 @@ export const contentCollections = {
     schema: SequenceSchema,
     names: (files: { flow: FlowContent }) =>
       files.flow.steps.flatMap((step) => (step.type === 'sequence' ? [step.sequence] : [])),
+  },
+  maps: {
+    dir: 'maps',
+    schema: MapSchema,
+    names: (files: { flow: FlowContent }) => files.flow.steps.flatMap((step) => (step.type === 'map' ? [step.map] : [])),
   },
 } as const;
 

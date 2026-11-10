@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "_description": "Buttons fixed to the screen during the game (the HUD). Each widget opens a pop-up (popups.json) when clicked and counts toward '/ N read' like a '!' until it is read ('countsTowardCompletion'). Types: 'portrait' = Alex's face and name in the top-left corner; 'name' is the label, 'state' picks the built-in drawing (\"sickly\" after the data center, or \"healthy\"). 'noise' = a speaker button with volume bars in the bottom-left corner; the bars rise as Alex gets within 'range' tiles of 'source' (a tile kind, e.g. \"data-center\"); 'ambientSound' (a sound in audio.json) hums in the background, up to 'ambientVolume' (0–1) right next to the source.",
+  "_usedIn": "Simulation page → the valley (screen corners)",
+  "widgets": [
+    {
+      "_location": "Top-left corner: Alex's portrait and name",
+      "type": "portrait",
+      "id": "individual-health",
+      "popup": "individual-health",
+      "name": "Alex",
+      "state": "sickly"
+    },
+    {
+      "_location": "Bottom-left corner: speaker button with volume bars",
+      "type": "noise",
+      "id": "noise-pollution",
+      "popup": "noise-pollution",
+      "source": "data-center",
+      "range": 20,
+      "ambientSound": "datacenter",
+      "ambientVolume": 0.35
+    }
+  ]
+}

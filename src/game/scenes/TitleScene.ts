@@ -7,7 +7,6 @@ import {
   AW,
   DATA_CENTER_X,
   GROUND_Y,
-  TOWN_HALL_X,
   makeSceneryTextures,
   paintBackground,
   riverCenter,
@@ -46,7 +45,6 @@ export class TitleScene extends Phaser.Scene {
     this.addTrees();
     this.addClouds();
     this.addBirds();
-    this.addTownHallLife();
     this.addDataCenterLife();
     this.addRiverSparkles();
     this.addButterflies();
@@ -218,17 +216,6 @@ export class TitleScene extends Phaser.Scene {
         repeatDelay: 9000,
       });
     }
-  }
-
-  private addTownHallLife(): void {
-    const cx = TOWN_HALL_X + 60;
-    const flagTop = GROUND_Y - 44 - 84;
-    const flag = this.add.image(S(cx + 7), S(flagTop), 'flag-0').setOrigin(0).setDepth(3);
-    this.time.addEvent({
-      delay: 380,
-      loop: true,
-      callback: () => flag.setTexture(flag.texture.key === 'flag-0' ? 'flag-1' : 'flag-0'),
-    });
   }
 
   private addDataCenterLife(): void {

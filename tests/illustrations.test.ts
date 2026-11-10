@@ -13,7 +13,8 @@ describe('intro slide illustrations', () => {
   it('every slide names a built-in illustration', () => {
     const { path, schema } = contentFiles.flow;
     const files = { flow: parseContent(path, read(path), schema) } as FileContent;
-    for (const [, name, file] of collectionFiles(files)) {
+    for (const [key, name, file] of collectionFiles(files)) {
+      if (key !== 'sequences') continue;
       const sequence = parseContent(file, read(file), contentCollections.sequences.schema);
       sequence.slides.forEach((slide, i) => {
         expect(illustrations, `${file} slide ${i + 1}: unknown illustration "${slide.illustration}" (sequence "${name}")`).toHaveProperty(
@@ -27,7 +28,8 @@ describe('intro slide illustrations', () => {
     const { path, schema } = contentFiles.flow;
     const files = { flow: parseContent(path, read(path), schema) } as FileContent;
     const audio = parseContent('audio.json', read('audio.json'), contentFiles.audio.schema);
-    for (const [, , file] of collectionFiles(files)) {
+    for (const [key, , file] of collectionFiles(files)) {
+      if (key !== 'sequences') continue;
       const { music } = parseContent(file, read(file), contentCollections.sequences.schema);
       if (music) expect(audio.music, `${file}: "music": "${music}"`).toHaveProperty(music);
     }

@@ -1,17 +1,9 @@
 import '@fontsource/jersey-10/400.css';
 import { loadContent } from './content/loader';
-import { setContent } from './content/store';
+import { getContent, setContent } from './content/store';
 import { startGame } from './game/game';
 import { audio } from './game/audio/audioManager';
-
-function showError(err: unknown): void {
-  const box = document.getElementById('error')!;
-  const pre = document.createElement('pre');
-  pre.textContent = `Datadew Valley could not start.\n\n${err instanceof Error ? err.message : String(err)}`;
-  box.replaceChildren(pre);
-  box.hidden = false;
-  console.error(err);
-}
+import { showError } from './ui/errorBox';
 
 async function boot(): Promise<void> {
   audio.armUnlock();
@@ -19,7 +11,10 @@ async function boot(): Promise<void> {
     // Phaser draws text onto a canvas, so the pixel font must be loaded first.
     await document.fonts.load('16px "Jersey 10"');
     setContent(await loadContent());
-    startGame('game');
+    audio.setSfxVolume(getContent().audio.sfxVolume);
+    const game = startGame('game');
+    // Development only: lets automated checks reach the game (never included in the built site).
+    if (import.meta.env.DEV) (window as unknown as { __datadew: unknown }).__datadew = game;
   } catch (err) {
     showError(err);
   }

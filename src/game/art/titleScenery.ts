@@ -30,7 +30,7 @@ export function paintBackground(scene: Phaser.Scene, key = 'title-bg'): string {
     nearHills(p, rng);
     meadow(p, rng);
     river(p, rng);
-    townHall(p, TOWN_HALL_X, GROUND_Y);
+    townHall(p, TOWN_HALL_X, GROUND_Y, { flagpole: false, wingRoofs: false });
     dataCenter(p, DATA_CENTER_X, GROUND_Y);
     foreground(p, rng);
   }, ART_PX);
@@ -176,17 +176,6 @@ export function makeSceneryTextures(scene: Phaser.Scene): void {
   // Two-frame bird.
   makeTexture(scene, 'bird-0', 7, 3, (p) => p.px(0, 0, 0x3a3a4a).px(1, 1, 0x3a3a4a).px(2, 2, 0x3a3a4a).px(3, 1, 0x3a3a4a).px(4, 0, 0x3a3a4a).px(5, 0, 0x3a3a4a).px(6, 0, 0x3a3a4a), ART_PX);
   makeTexture(scene, 'bird-1', 7, 3, (p) => p.px(0, 2, 0x3a3a4a).px(1, 1, 0x3a3a4a).px(2, 1, 0x3a3a4a).px(3, 2, 0x3a3a4a).px(4, 1, 0x3a3a4a).px(5, 1, 0x3a3a4a).px(6, 2, 0x3a3a4a), ART_PX);
-
-  // Two-frame flag.
-  makeTexture(scene, 'flag-0', 10, 7, (p) => {
-    p.rect(0, 0, 9, 6, 0x2e86de).rect(0, 0, 9, 2, 0xffffff).rect(0, 4, 9, 2, 0x27ae60).px(9, 1, 0x2e86de);
-  }, ART_PX);
-  makeTexture(scene, 'flag-1', 10, 7, (p) => {
-    for (let x = 0; x < 9; x++) {
-      const dy = x % 4 < 2 ? 0 : 1;
-      p.rect(x, dy, 1, 2, 0xffffff).rect(x, dy + 2, 1, 2, 0x2e86de).rect(x, dy + 4, 1, 2, 0x27ae60);
-    }
-  }, ART_PX);
 
   // Rooftop fan blades (rotated by the scene).
   makeTexture(scene, 'fan', 7, 7, (p) => {

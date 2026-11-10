@@ -28,4 +28,16 @@ Vite + TypeScript + Phaser 3.90 (not Phaser 4), Zod 4 for content validation, Vi
 
 **Add a slideshow:** create `public/content/sequences/<name>.json` (`music` = optional track key from `audio.json`, `slides: [{ illustration, caption }]`) and reference it from a `sequence` step in `flow.json`; the loader loads any sequence that `flow.json` refers to (see `contentCollections` in `src/content/files.ts`).
 
+**Add a pop-up / "!":** pop-up in `public/content/popups.json` → hotspot `{ id, popup, x, y }` in `public/content/maps/<map>.json`. No code.
+
+**Add a pop-up block type:** schema in `BlockSchema` (`src/content/schemas.ts`) → renderer in `src/ui/blocks/index.ts` → CSS in `src/styles.css`.
+
+**Add a map tile kind:** entry in `kinds` (`src/game/map/kinds.ts`: ground, walkable, optional `size` and `object` sprite) → use it in a map's `legend`. Maps are letter grids parsed and validated by `src/game/map/grid.ts`; tiles are 16 art px drawn at `MAP_SCALE` 3.
+
+**Add a HUD widget type:** schema in `HudWidgetSchema` (`src/content/schemas.ts`) → factory in `widgetTypes` (`src/game/hud/widgets.ts`) → entry in `public/content/hud.json`. Widgets with `countsTowardCompletion` count in "x / N read" automatically.
+
+**Add a map effect:** factory in `effects` (`src/game/effects/index.ts`) → list it in a map's `effects` in JSON.
+
+**Add a synthesized sound:** generator in `src/game/audio/recordings/` → register in `recordings/index.ts` → `"synth": "<name>"` under `sounds` in `audio.json`; play with `audio.sound(key, def)` (loop handle) or `audio.sfx(name)` for short effects (`src/game/audio/sfx.ts`).
+
 **Add music:** either drop an mp3/ogg in `public/assets/audio/` and add a track with `"file": "assets/audio/x.mp3"` in `audio.json`, or write a synth song in `src/game/audio/songs/<name>.ts` (see `meadow.ts`), register it in `songs/index.ts`, and use `"synth": "<name>"`. Play it from a scene with `audio.playMusic('<trackKey>', getContent().audio.music.<trackKey>)`.

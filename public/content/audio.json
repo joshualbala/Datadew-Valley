@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "_description": "Background music. Each track under 'music' uses EITHER 'synth' (name of a built-in melody in src/game/audio/songs/, e.g. \"picnic\" = upbeat and cozy, \"meadow\" = slow and warm, \"overcast\" = slow, gray and wistful) OR 'file' (path to an mp3/ogg inside public/, e.g. \"assets/audio/title.mp3\"). 'volume' is 0 to 1.",
-  "_usedIn": "Simulation page → Start screen, Title screen, Intro slides (a slideshow picks its track with \"music\" in its sequences/*.json file)",
+  "_description": "Music, sounds and effects volume. 'music': each track uses EITHER 'synth' (a built-in melody in src/game/audio/songs/: \"picnic\" = upbeat and cozy, \"meadow\" = slow and warm, \"overcast\" = slow, gray and wistful, \"haze\" = sparse and hazy) OR 'file' (an mp3/ogg inside public/, e.g. \"assets/audio/title.mp3\"); 'volume' is 0 to 1. 'sounds': recordings used by the game (e.g. the data center noise), each with EITHER 'synth' (built-in, see src/game/audio/recordings/: \"datacenter\" = fans, electrical hum and whine) OR 'file' (a real recording, e.g. \"assets/audio/datacenter.mp3\"). 'sfxVolume' (0 to 1) = small sound effects (pop-up chimes, footsteps); 0 turns them off. 'alexCoughSeconds' = [min, max]: Alex coughs at a random moment in that range, again and again, while on the map ([0, 0] turns it off).",
+  "_usedIn": "Simulation page → Start screen, Title screen, Intro slides, the valley (music, data center noise, sound effects)",
   "music": {
     "title": {
       "_location": "Starts after the first click ('Click anywhere to begin') and plays on the opening page.",
@@ -12,6 +12,23 @@
       "_location": "Intro slides (the title music crossfades into this). Fades out at '6 months later'.",
       "synth": "overcast",
       "volume": 0.75
+    },
+    "valley": {
+      "_location": "The valley (game map), set by maps/valley.json → music",
+      "synth": "haze",
+      "volume": 0.7
     }
-  }
+  },
+  "sounds": {
+    "datacenter": {
+      "_location": "The noise pop-up's player and the background hum near the data center",
+      "synth": "datacenter",
+      "volume": 0.8
+    }
+  },
+  "sfxVolume": 0.5,
+  "alexCoughSeconds": [
+    25,
+    50
+  ]
 }

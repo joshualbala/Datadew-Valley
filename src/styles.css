@@ -38,3 +38,261 @@ body {
   padding: 1.5rem;
   line-height: 1.5;
 }
+
+/* ------------------------------------------------------------------ pop-ups
+   Laid exactly over the game canvas; --u = one game pixel, so everything
+   scales with the game. Colors match the slides (wood frame, parchment). */
+.popup-layer {
+  --u: 1px;
+  --wood: #c97c3a;
+  --wood-light: #e39a55;
+  --wood-dark: #5b3a1e;
+  --parchment: #fff4d6;
+  --parchment-shade: #eedcb3;
+  --ink: #3a2412;
+  --ink-soft: #8a5a2b;
+  position: fixed;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Jersey 10', system-ui, sans-serif;
+  color: var(--ink);
+}
+.popup-layer[hidden] {
+  display: none;
+}
+.popup-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 14, 8, 0.55);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.popup {
+  position: relative;
+  width: calc(var(--u) * 600);
+  max-height: calc(var(--u) * 470);
+  display: flex;
+  flex-direction: column;
+  background: var(--parchment);
+  border: calc(var(--u) * 6) solid var(--wood);
+  outline: calc(var(--u) * 4) solid var(--wood-dark);
+  box-shadow:
+    inset 0 calc(var(--u) * -4) 0 var(--parchment-shade),
+    0 calc(var(--u) * 10) 0 rgba(0, 0, 0, 0.35);
+  padding: calc(var(--u) * 18) calc(var(--u) * 26) calc(var(--u) * 20);
+  opacity: 0;
+  transform: translateY(calc(var(--u) * 14));
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+.popup-layer.is-open .popup-backdrop,
+.popup-layer.is-open .popup {
+  opacity: 1;
+  transform: none;
+}
+.popup-title {
+  margin: 0 0 calc(var(--u) * 10);
+  font-size: calc(var(--u) * 46);
+  font-weight: 400;
+  line-height: 1;
+  text-align: center;
+  color: var(--ink);
+}
+.popup-body {
+  overflow-y: auto;
+  font-size: calc(var(--u) * 27);
+  line-height: 1.15;
+}
+.popup-body > * {
+  margin: 0 0 calc(var(--u) * 12);
+}
+.popup-continue {
+  align-self: center;
+  margin-top: calc(var(--u) * 6);
+  padding: calc(var(--u) * 6) calc(var(--u) * 34);
+  font: inherit;
+  font-size: calc(var(--u) * 34);
+  color: var(--parchment);
+  background: var(--wood);
+  border: calc(var(--u) * 4) solid var(--wood-dark);
+  box-shadow: inset 0 calc(var(--u) * 4) 0 var(--wood-light);
+  text-shadow: 0 calc(var(--u) * 2) 0 var(--wood-dark);
+  cursor: pointer;
+}
+.popup-continue:hover,
+.popup-continue:focus-visible {
+  background: var(--wood-light);
+  outline: none;
+}
+.popup-continue:active {
+  transform: translateY(calc(var(--u) * 2));
+}
+
+/* Blocks */
+.block-stat {
+  text-align: center;
+  padding: calc(var(--u) * 6) 0;
+  border-top: calc(var(--u) * 2) dashed var(--parchment-shade);
+  border-bottom: calc(var(--u) * 2) dashed var(--parchment-shade);
+}
+.block-stat-value {
+  font-size: calc(var(--u) * 48);
+  line-height: 1;
+  color: #b33a2b;
+}
+.block-stat-label {
+  color: var(--ink-soft);
+}
+.block-citation {
+  font-size: calc(var(--u) * 21);
+  color: var(--ink-soft);
+}
+.block-citation a {
+  color: inherit;
+}
+.block-image {
+  text-align: center;
+}
+.block-image canvas {
+  width: 100%;
+  image-rendering: pixelated;
+  border: calc(var(--u) * 3) solid var(--wood-dark);
+}
+.block-image-caption {
+  font-size: calc(var(--u) * 21);
+  color: var(--ink-soft);
+}
+.block-keys {
+  display: grid;
+  gap: calc(var(--u) * 8);
+}
+.block-keys-row {
+  display: grid;
+  grid-template-columns: calc(var(--u) * 190) 1fr;
+  align-items: center;
+  gap: calc(var(--u) * 14);
+}
+.block-keys-caps {
+  display: flex;
+  justify-content: flex-end;
+  gap: calc(var(--u) * 5);
+}
+.keycap {
+  min-width: calc(var(--u) * 34);
+  padding: 0 calc(var(--u) * 4);
+  box-sizing: border-box;
+  font: inherit;
+  font-size: calc(var(--u) * 24);
+  line-height: calc(var(--u) * 32);
+  text-align: center;
+  color: var(--ink);
+  background: #fffaf0;
+  border: calc(var(--u) * 3) solid var(--wood-dark);
+  box-shadow: inset 0 calc(var(--u) * -4) 0 var(--parchment-shade);
+}
+
+/* Arrow keys: a small pixel triangle inside the key cap. */
+.keycap-arrow {
+  position: relative;
+  width: calc(var(--u) * 34);
+  height: calc(var(--u) * 38);
+}
+.keycap-arrow::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  border: calc(var(--u) * 7) solid transparent;
+}
+.keycap-arrow-up::after { border-bottom-color: var(--ink); border-top-width: 0; }
+.keycap-arrow-down::after { border-top-color: var(--ink); border-bottom-width: 0; }
+.keycap-arrow-left::after { border-right-color: var(--ink); border-left-width: 0; }
+.keycap-arrow-right::after { border-left-color: var(--ink); border-right-width: 0; }
+
+/* Bill block */
+.block-bill {
+  background: #fffaf0;
+  border: calc(var(--u) * 3) solid var(--parchment-shade);
+  padding: calc(var(--u) * 8) calc(var(--u) * 14);
+}
+.bill-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1.4fr;
+  gap: calc(var(--u) * 8);
+  padding: calc(var(--u) * 3) 0;
+  border-bottom: calc(var(--u) * 2) dashed var(--parchment-shade);
+}
+.bill-row > :not(:first-child) {
+  text-align: right;
+}
+.bill-head {
+  color: var(--ink-soft);
+  font-size: calc(var(--u) * 22);
+}
+.bill-up {
+  color: #c0392b;
+}
+.bill-diff {
+  font-size: calc(var(--u) * 20);
+}
+.bill-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: calc(var(--u) * 8);
+  font-size: calc(var(--u) * 34);
+}
+.bill-total strong {
+  font-weight: 400;
+  font-size: calc(var(--u) * 44);
+  text-shadow: calc(var(--u) * 1) 0 0 currentColor;
+}
+.bill-note {
+  text-align: right;
+  font-size: calc(var(--u) * 20);
+  color: var(--ink-soft);
+}
+
+/* Audio player block */
+.block-audio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--u) * 12);
+  padding: calc(var(--u) * 8) calc(var(--u) * 12);
+  background: #fffaf0;
+  border: calc(var(--u) * 3) solid var(--parchment-shade);
+}
+.audio-title {
+  flex-basis: 100%;
+  color: var(--ink-soft);
+}
+.audio-toggle {
+  min-width: calc(var(--u) * 110);
+  padding: calc(var(--u) * 2) calc(var(--u) * 14);
+  font: inherit;
+  font-size: calc(var(--u) * 26);
+  color: var(--parchment);
+  background: var(--wood);
+  border: calc(var(--u) * 3) solid var(--wood-dark);
+  box-shadow: inset 0 calc(var(--u) * 3) 0 var(--wood-light);
+  cursor: pointer;
+}
+.audio-toggle.is-playing {
+  background: #c0392b;
+}
+.audio-volume-label {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 8);
+  flex: 1;
+  color: var(--ink-soft);
+}
+.audio-volume {
+  flex: 1;
+  accent-color: var(--wood);
+}

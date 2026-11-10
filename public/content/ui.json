@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "_description": "General on-screen text for the game. 'start' = the first screen (needed so the browser allows sound): 'prompt' is the main line, 'soundNote' the smaller line under it. 'title' = the opening page: 'heading' is the big game name, 'tagline' is an optional line under it (leave \"\" to hide), 'enterButton' is the button label, 'hint' is the small text under the button. 'sequence' = the intro slides: 'nextHint' is the small text in the caption box telling players how to continue, 'backButton' is the label of the button that goes to the previous slide.",
-  "_usedIn": "Simulation page → Start screen, Title screen (opening page), Intro slides",
+  "_description": "General on-screen text for the game. 'start' = the first screen (needed so the browser allows sound): 'prompt' is the main line, 'soundNote' the smaller line under it. 'title' = the opening page: 'heading' is the big game name, 'tagline' is an optional line under it (leave \"\" to hide), 'enterButton' is the button label, 'hint' is the small text under the button. 'sequence' = the intro slides: 'nextHint' is the small text in the caption box telling players how to continue, 'backButton' is the label of the button that goes to the previous slide. 'popup' = pop-up windows: 'continueButton' is the default closing button label. 'map' = the game map: 'interactHint' shows above a '!' when Alex is close, 'progress' is the counter in the corner ({read} and {total} become numbers).",
+  "_usedIn": "Simulation page → Start screen, Title screen (opening page), Intro slides, Pop-ups, Game map",
   "start": {
     "_location": "Very first screen, dark background, before the opening page",
     "prompt": "Click anywhere to begin",
@@ -18,5 +18,14 @@
     "_location": "Intro slides: bottom of the caption box",
     "nextHint": "Click or press Enter to continue",
     "backButton": "Back"
+  },
+  "popup": {
+    "_location": "Bottom of every pop-up window",
+    "continueButton": "Continue"
+  },
+  "map": {
+    "_location": "Game map: above a nearby '!' and the counter in the top-left corner",
+    "interactHint": "Press E",
+    "progress": "{read} / {total} read"
   }
 }

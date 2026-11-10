@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "_description": "Every pop-up window, by id. Map '!' markers, HUD buttons and the flow open pop-ups by these ids. Each pop-up: 'title', 'body' (a list of blocks, shown top to bottom), optional 'button' (label of the closing button; default from ui.json). Block types: {\"type\":\"text\",\"text\":...} a paragraph; {\"type\":\"stat\",\"value\":\"5M gal\",\"label\":...} a big number; {\"type\":\"citation\",\"text\":...,\"url\":optional} a source line; {\"type\":\"image\",\"illustration\":\"valley-home\",\"caption\":optional} a built-in picture (same names as the intro slides); {\"type\":\"bill\",\"items\":[{\"label\":\"Electricity\",\"before\":95,\"after\":160}],\"totalLabel\":\"You now owe\",\"total\":optional (default = sum of the increases),\"currency\":\"$\",\"beforeLabel\",\"afterLabel\",\"note\"} a bill with increases in red; {\"type\":\"audioPlayer\",\"sound\":\"datacenter\",\"label\":...,\"autoplay\":true|false} play/pause and volume for a sound in audio.json; {\"type\":\"keys\",\"rows\":[{\"keys\":[\"W\",\"A\"],\"label\":...}]} keyboard keys with what they do (write \"↑\", \"↓\", \"←\", \"→\" for arrow keys; they are drawn as arrows).",
+  "_usedIn": "Simulation page → pop-ups over the game (controls, '!' markers, later HUD buttons)",
+  "popups": {
+    "controls": {
+      "_location": "Shown over the valley right after '6 months later'",
+      "title": "How to play",
+      "body": [
+        {
+          "type": "text",
+          "text": "Walk Alex around Datadew Valley. Look for the ! markers and read what changed after the data center arrived."
+        },
+        {
+          "type": "keys",
+          "rows": [
+            {
+              "keys": [
+                "W",
+                "A",
+                "S",
+                "D"
+              ],
+              "label": "Walk"
+            },
+            {
+              "keys": [
+                "↑",
+                "←",
+                "↓",
+                "→"
+              ],
+              "label": "Or walk with the arrow keys"
+            },
+            {
+              "keys": [
+                "E"
+              ],
+              "label": "Read a ! when you are next to it"
+            },
+            {
+              "keys": [
+                "M"
+              ],
+              "label": "Mute or unmute sound"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "This experience uses sound. Headphones are recommended."
+        }
+      ],
+      "button": "Start exploring"
+    },
+    "vegetation-loss": {
+      "_location": "Valley: '!' on the cleared land beside the data center",
+      "title": "PLACEHOLDER: Where the woods were",
+      "body": [
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: Acres of forest were cleared to build the data center. The trees that shaded the river and sheltered birds are now stumps."
+        },
+        {
+          "type": "stat",
+          "value": "PLACEHOLDER: 40 acres",
+          "label": "of forest cleared"
+        },
+        {
+          "type": "citation",
+          "text": "PLACEHOLDER (Author, Year)"
+        }
+      ]
+    },
+    "community": {
+      "_location": "Valley: '!' in the town plaza next to the well",
+      "title": "PLACEHOLDER: The town",
+      "body": [
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: The data center promised jobs, but once it was built it needed only a few dozen workers. Neighbors talk about the noise, the trucks and their bills."
+        },
+        {
+          "type": "citation",
+          "text": "PLACEHOLDER (Author, Year)"
+        }
+      ]
+    },
+    "river-contamination": {
+      "_location": "Valley: the river (it glows when Alex is near); '!' beside Alex's side of the river",
+      "title": "PLACEHOLDER: The river",
+      "body": [
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: Since the data center opened, the river has turned a murky light brown. Wastewater and runoff from the site drain into it, and neighbors no longer let their kids swim here."
+        },
+        {
+          "type": "citation",
+          "text": "PLACEHOLDER (Author, Year)"
+        }
+      ]
+    },
+    "bills": {
+      "_location": "Valley: Alex's mailbox (the red '-$'), in front of the cottage",
+      "title": "PLACEHOLDER: This month's bills",
+      "body": [
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: Data centers use huge amounts of electricity and water, and local utility prices went up to pay for new power lines and water supply."
+        },
+        {
+          "type": "bill",
+          "currency": "$",
+          "beforeLabel": "Before",
+          "afterLabel": "Now",
+          "items": [
+            {
+              "label": "Electricity",
+              "before": 95.0,
+              "after": 162.0
+            },
+            {
+              "label": "Water",
+              "before": 40.0,
+              "after": 71.0
+            }
+          ],
+          "totalLabel": "You now owe",
+          "note": "PLACEHOLDER: more than before, every month"
+        },
+        {
+          "type": "citation",
+          "text": "PLACEHOLDER (Author, Year)"
+        }
+      ]
+    },
+    "air-quality-smog": {
+      "_location": "Valley: '!' east of the data center, in the smog",
+      "title": "PLACEHOLDER: The air",
+      "body": [
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: Backup diesel generators and constant power demand put pollution into the air. On still days a haze hangs over the valley."
+        },
+        {
+          "type": "stat",
+          "value": "PLACEHOLDER: 2×",
+          "label": "more asthma visits nearby"
+        },
+        {
+          "type": "citation",
+          "text": "PLACEHOLDER (Author, Year)"
+        }
+      ]
+    },
+    "individual-health": {
+      "_location": "HUD: clicking Alex's portrait or name (top-left)",
+      "title": "PLACEHOLDER: How Alex feels",
+      "body": [
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: Alex sleeps badly with the constant hum, gets headaches and coughs more on smoggy days. Worry about bills and the river weighs on them too."
+        },
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: Physical and mental health effects of living near a data center."
+        },
+        {
+          "type": "citation",
+          "text": "PLACEHOLDER (Author, Year)"
+        }
+      ]
+    },
+    "noise-pollution": {
+      "_location": "HUD: clicking the speaker button (bottom-left); the recording starts playing",
+      "title": "PLACEHOLDER: The sound of a data center",
+      "body": [
+        {
+          "type": "audioPlayer",
+          "sound": "datacenter",
+          "label": "Listen: what it sounds like next to a data center",
+          "autoplay": true
+        },
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: Cooling fans and transformers run day and night. Neighbors describe a low hum and a high whine they can hear even indoors."
+        },
+        {
+          "type": "citation",
+          "text": "PLACEHOLDER (Author, Year)"
+        }
+      ]
+    }
+  }
+}

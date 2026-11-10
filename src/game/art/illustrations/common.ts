@@ -213,14 +213,20 @@ export const COTTAGE_W = 44;
 /** Cottage door, relative to the cottage's left edge (for paths and gates). */
 export const COTTAGE_DOOR_X = 18;
 
-/** Alex's cottage: cream walls, red roof, chimney, flower boxes. (x = left edge, y = ground) */
-export function cottage(p: PixelPainter, x: number, y: number, litWindows = false): void {
+/** Wall and roof colors for a cottage (Alex's is the default). */
+export interface CottageColors {
+  roof: number;
+  roofDark: number;
+  wall: number;
+  wallShade: number;
+}
+export const ALEX_COTTAGE: CottageColors = { roof: 0xc0473a, roofDark: 0x963328, wall: 0xf3e2bf, wallShade: 0xd9c49a };
+
+/** A cottage: walls, gable roof, chimney, flower boxes. Alex's colors by default. (x = left edge, y = ground) */
+export function cottage(p: PixelPainter, x: number, y: number, litWindows = false, colors: CottageColors = ALEX_COTTAGE): void {
   const w = COTTAGE_W;
   const top = y - 24;
-  const roof = 0xc0473a;
-  const roofDark = 0x963328;
-  const wall = 0xf3e2bf;
-  const wallShade = 0xd9c49a;
+  const { roof, roofDark, wall, wallShade } = colors;
   const glass = litWindows ? 0xffd66b : C.glass;
   // Chimney.
   p.rect(x + w - 12, top - 20, 6, 14, C.brick).rect(x + w - 13, top - 21, 8, 2, C.brickDark);

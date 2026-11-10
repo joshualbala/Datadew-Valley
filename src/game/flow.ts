@@ -14,6 +14,7 @@ type StepHandler<T extends FlowStep['type']> = (scene: Phaser.Scene, step: StepO
 const handlers: { [T in FlowStep['type']]: StepHandler<T> } = {
   sequence: (scene, step) => scene.scene.start('Sequence', { sequence: step.sequence }),
   card: (scene, step) => scene.scene.start('Card', step),
+  map: (scene, step) => scene.scene.start('Map', { map: step.map, popup: step.popup }),
 };
 
 let index = -1;
@@ -31,8 +32,8 @@ export const flow = {
     index += 1;
     const step = getContent().flow.steps[index];
     if (!step) {
-      // TEMPORARY: until the controls pop-up (Step 3) and the map (Step 4) exist, the flow ends here.
-      scene.scene.start('Placeholder');
+      // Nothing left in flow.json: back to the title screen.
+      scene.scene.start('Title');
       return;
     }
     (handlers[step.type] as StepHandler<FlowStep['type']>)(scene, step);

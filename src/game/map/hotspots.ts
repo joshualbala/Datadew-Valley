@@ -77,6 +77,11 @@ export class HotspotMarkers {
     });
   }
 
+  /** Is Alex close enough to read a marker right now? */
+  get isNear(): boolean {
+    return this.near !== null;
+  }
+
   /** Call every frame with Alex's feet position. */
   update(px: number, py: number): void {
     let best: Marker | null = null;

@@ -43,6 +43,9 @@ function readMuted(): boolean {
 class AudioManager {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
+  /** All music goes through this, so it can be dipped without touching other sounds. */
+  private musicBus: GainNode | null = null;
+  private musicLevel = 1;
   private current: { key: string; player: MusicPlayer } | null = null;
   private pending: { key: string; track: MusicTrack } | null = null;
   private listeners = new Set<(muted: boolean) => void>();
@@ -73,6 +76,9 @@ class AudioManager {
       this.master = this.ctx.createGain();
       this.master.gain.value = this.muted ? 0 : 1;
       this.master.connect(this.ctx.destination);
+      this.musicBus = this.ctx.createGain();
+      this.musicBus.gain.value = this.musicLevel;
+      this.musicBus.connect(this.master);
     }
     void this.ctx.resume();
     if (this.pending) {
@@ -92,17 +98,27 @@ class AudioManager {
     this.stopMusic(1.5);
     let player: MusicPlayer;
     if (track.file) {
-      player = new FilePlayer(this.ctx, this.master, `${import.meta.env.BASE_URL}${track.file}`, track.volume);
+      player = new FilePlayer(this.ctx, this.musicBus!, `${import.meta.env.BASE_URL}${track.file}`, track.volume);
     } else {
       const song = songs[track.synth ?? ''];
       if (!song) {
         console.warn(`Unknown synth song "${track.synth}"`);
         return;
       }
-      player = new SynthPlayer(this.ctx, this.master, song, track.volume);
+      player = new SynthPlayer(this.ctx, this.musicBus!, song, track.volume);
     }
     player.start();
     this.current = { key, player };
+  }
+
+  /**
+   * Dip or restore the music (0–1, 1 = normal), e.g. silent under a slide's
+   * own sound, or quieter next to the data center so its hum comes through.
+   */
+  setMusicLevel(level: number, rampSeconds = 0.5): void {
+    if (Math.abs(level - this.musicLevel) < 0.005) return;
+    this.musicLevel = level;
+    if (this.ctx && this.musicBus) this.musicBus.gain.setTargetAtTime(level, this.ctx.currentTime, rampSeconds / 3);
   }
 
   /** Volume of small sound effects (from audio.json → sfxVolume). */

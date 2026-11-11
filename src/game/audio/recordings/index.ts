@@ -1,3 +1,4 @@
+import { constructionSite } from './construction';
 import { dataCenterHum } from './datacenter';
 
 /**
@@ -8,4 +9,5 @@ import { dataCenterHum } from './datacenter';
  */
 export const recordings: Record<string, (sampleRate: number) => Float32Array> = {
   datacenter: (rate) => dataCenterHum(rate),
+  construction: (rate) => constructionSite(rate),
 };

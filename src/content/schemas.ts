@@ -33,6 +33,10 @@ export const UiSchema = contentFile({
   popup: z.object({
     continueButton: z.string().min(1),
   }),
+  reset: z.object({
+    /** Shown after the first click on the Reset button; a second click resets. */
+    confirm: z.string().min(1),
+  }),
   map: z.object({
     interactHint: z.string().min(1),
     /** "{read}" and "{total}" are replaced with numbers. */
@@ -110,6 +114,8 @@ export const SlideSchema = z.object({
   /** Built-in picture drawn in code (src/game/art/illustrations/). */
   illustration: z.string().min(1),
   caption: z.string().min(1),
+  /** Optional sound (audio.json → sounds) that replaces the music while this slide shows. */
+  sound: z.string().optional(),
 });
 
 export const SequenceSchema = contentFile({
@@ -210,16 +216,19 @@ export const HotspotSchema = z.object({
 });
 export type Hotspot = z.infer<typeof HotspotSchema>;
 
-/** A neighbor who wanders slowly around (x, y). */
+/**
+ * A person who starts at (x, y). Neighbors live in the nearest house and run
+ * errands around town; workers move between stations (consoles, racks).
+ */
 export const NpcSchema = z.object({
-  /** Which built-in neighbor look (0–9; see TOWNSFOLK in src/game/art/illustrations/common.ts). */
+  /** "neighbor" (TOWNSFOLK looks, coughs as Alex passes) or "worker" (lab coats; WORKERS looks). */
+  role: z.enum(['neighbor', 'worker']).default('neighbor'),
+  /** Which built-in look (neighbors 0–9, workers 0–3; see src/game/art/illustrations/common.ts). */
   look: z.number().int().min(0),
-  /** "sad" (frown, rain cloud) or "angry" (tight mouth, red anger mark). */
-  mood: z.enum(['sad', 'angry']),
+  /** "sad" (frown, rain cloud now and then), "angry" (tight mouth, hard brows) or "neutral" (flat mouth). */
+  mood: z.enum(['sad', 'angry', 'neutral']),
   x: z.number().int().min(0),
   y: z.number().int().min(0),
-  /** How many tiles away from (x, y) they may wander. */
-  wander: z.number().int().min(0).default(3),
 });
 export type Npc = z.infer<typeof NpcSchema>;
 
@@ -230,9 +239,29 @@ export const MapSchema = contentFile({
   grid: z.array(z.string().min(1)).min(1),
   spawn: z.object({ x: z.number().int().min(0), y: z.number().int().min(0) }),
   hotspots: z.array(HotspotSchema).default([]),
-  /** Neighbors walking around this map. */
+  /** People walking around this map. */
   npcs: z.array(NpcSchema).default([]),
-  /** Music track (audio.json → music) for this map. */
+  /** Doors to other maps: press E next to (x, y) to go to map `to`, arriving at `spawn`. */
+  doors: z
+    .array(
+      z.object({
+        x: z.number().int().min(0),
+        y: z.number().int().min(0),
+        /** Name of a file in public/content/maps/ (without .json). */
+        to: z.string().min(1),
+        spawn: z.object({ x: z.number().int().min(0), y: z.number().int().min(0) }),
+        /** Hint shown when Alex is close, e.g. "Press E to enter". */
+        hint: z.string().min(1),
+      }),
+    )
+    .default([]),
+  /**
+   * Fix the noise meter and background hum on this map instead of using distance,
+   * e.g. inside the data center: { "level": 1, "volume": 1.4 } (level 0–1; volume
+   * like hud.json's ambientVolume, can go above 1 for really loud).
+   */
+  noise: z.object({ level: z.number().min(0).max(1), volume: z.number().min(0).max(2) }).optional(),
+  /** Music track (audio.json → music) for this map; leave out for no music (e.g. inside the data center). */
   music: z.string().optional(),
   /** Atmosphere effects, applied in order (see src/game/effects/). */
   effects: z.array(z.object({ type: z.string().min(1) }).passthrough()).default([]),
@@ -259,14 +288,20 @@ export const NoiseWidgetSchema = z.object({
   type: z.literal('noise'),
   id: z.string().min(1),
   popup: z.string().min(1),
-  /** The volume bars rise as Alex gets closer to this tile kind. */
-  source: z.string().min(1),
+  /** The volume bars rise as Alex gets closer to this tile kind (or any of these kinds). */
+  source: z.union([z.string().min(1), z.array(z.string().min(1)).min(1)]),
   /** Distance in tiles where the bars reach zero. */
   range: z.number().positive(),
   /** Sound (audio.json → sounds) that hums in the background, louder near the source. Optional. */
   ambientSound: z.string().optional(),
-  /** Loudest the background hum gets (0–1). */
+  /** Loudest the background hum gets (0–1), right next to the source. */
   ambientVolume: z.number().min(0).max(1).default(0.35),
+  /** Quietest it gets (0–1), anywhere on the map, so the hum is always faintly there. */
+  ambientMinVolume: z.number().min(0).max(1).default(0.05),
+  /** Tiles over which the hum fades from loudest to quietest (usually bigger than `range`). */
+  ambientRange: z.number().positive().default(45),
+  /** How much the music dips right next to the source (0 = not at all, 1 = silent). */
+  musicDip: z.number().min(0).max(1).default(0.55),
   countsTowardCompletion: z.boolean().default(true),
 });
 export const HudWidgetSchema = z.discriminatedUnion('type', [PortraitWidgetSchema, NoiseWidgetSchema]);

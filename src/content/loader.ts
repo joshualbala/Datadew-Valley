@@ -62,10 +62,22 @@ export async function loadContent(): Promise<Content> {
   const collections = Object.fromEntries(
     (Object.keys(contentCollections) as CollectionKey[]).map((key) => [key, {} as Record<string, unknown>]),
   );
-  await Promise.all(
-    collectionFiles(files).map(async ([key, name, path]) => {
-      collections[key][name] = await loadOne(path, contentCollections[key].schema);
-    }),
-  );
+  // Load what the files refer to, then anything those refer to (e.g. a map's doors), until nothing new turns up.
+  let pending = collectionFiles(files);
+  while (pending.length) {
+    await Promise.all(
+      pending.map(async ([key, name, path]) => {
+        collections[key][name] = await loadOne(path, contentCollections[key].schema);
+      }),
+    );
+    pending = pending.flatMap(([key, name]) => {
+      const def = contentCollections[key];
+      const refs = 'refs' in def ? def.refs(collections[key][name] as never) : [];
+      return refs
+        .filter((ref) => !(ref in collections[key]))
+        .map((ref) => [key, ref, `${def.dir}/${ref}.json`] as [CollectionKey, string, string]);
+    });
+    pending = pending.filter(([, n], i) => pending.findIndex(([, m]) => m === n) === i);
+  }
   return { ...files, ...collections } as Content;
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_description": "Music, sounds and effects volume. 'music': each track uses EITHER 'synth' (a built-in melody in src/game/audio/songs/: \"picnic\" = upbeat and cozy, \"meadow\" = slow and warm, \"overcast\" = slow, gray and wistful, \"haze\" = sparse and hazy) OR 'file' (an mp3/ogg inside public/, e.g. \"assets/audio/title.mp3\"); 'volume' is 0 to 1. 'sounds': recordings used by the game (e.g. the data center noise), each with EITHER 'synth' (built-in, see src/game/audio/recordings/: \"datacenter\" = fans, electrical hum and whine) OR 'file' (a real recording, e.g. \"assets/audio/datacenter.mp3\"). 'sfxVolume' (0 to 1) = small sound effects (pop-up chimes, footsteps); 0 turns them off. 'alexCoughSeconds' = [min, max]: Alex coughs at a random moment in that range, again and again, while on the map ([0, 0] turns it off).",
+  "_description": "Music, sounds and effects volume. 'music': each track uses EITHER 'synth' (a built-in melody in src/game/audio/songs/: \"picnic\" = upbeat and cozy, \"meadow\" = slow and warm, \"overcast\" = slow, gray and wistful, \"haze\" = sparse and hazy) OR 'file' (an mp3/ogg inside public/, e.g. \"assets/audio/title.mp3\"); 'volume' is 0 to 1. 'sounds': recordings used by the game (e.g. the data center noise), each with EITHER 'synth' (built-in, see src/game/audio/recordings/: \"datacenter\" = fans, electrical buzz and high whine; \"construction\" = engine, reversing beeper, hammers, jackhammer) OR 'file' (a real recording, e.g. \"assets/audio/datacenter.mp3\"). 'sfxVolume' (0 to 1) = small sound effects (pop-up chimes, footsteps); 0 turns them off. 'alexCoughSeconds' = [min, max]: Alex coughs at a random moment in that range, again and again, while on the map ([0, 0] turns it off).",
   "_usedIn": "Simulation page → Start screen, Title screen, Intro slides, the valley (music, data center noise, sound effects)",
   "music": {
     "title": {
@@ -24,6 +24,11 @@
       "_location": "The noise pop-up's player and the background hum near the data center",
       "synth": "datacenter",
       "volume": 0.8
+    },
+    "construction": {
+      "_location": "Intro slide 3 (construction): replaces the music for that slide",
+      "synth": "construction",
+      "volume": 0.6
     }
   },
   "sfxVolume": 0.5,

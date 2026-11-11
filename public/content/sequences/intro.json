@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_description": "Intro slides, shown in order after the title screen. Each slide has a 'caption' (the text in the box under the picture; write \\n for a line break) and an 'illustration' (which built-in pixel picture to show). Built-in pictures: \"valley-home\" (Alex waving at the garden gate of their fenced cottage), \"town-meeting\" (neighbors outside the town hall looking at the data center plan), \"construction\" (bulldozers clearing the woods, a steel frame going up), \"data-center-opens\" (the finished data center lit up at dusk). Add, remove or reorder slides freely; a picture can be used more than once. 'music' (optional) = which track from audio.json plays during the slides.",
+  "_description": "Intro slides, shown in order after the title screen. Each slide has a 'caption' (the text in the box under the picture; write \\n for a line break) and an 'illustration' (which built-in pixel picture to show). Built-in pictures: \"valley-home\" (Alex waving at the garden gate of their fenced cottage), \"town-meeting\" (neighbors outside the town hall looking at the data center plan), \"construction\" (bulldozers clearing the woods, a steel frame going up), \"data-center-opens\" (the finished data center lit up at dusk). Add, remove or reorder slides freely; a picture can be used more than once. 'music' (optional) = which track from audio.json plays during the slides. A slide's 'sound' (optional) = a sound from audio.json → sounds that replaces the music while that slide shows (slide 3 uses \"construction\"). Captions are sized automatically: short ones get bigger text.",
   "_usedIn": "Simulation page → Intro slides (between the title screen and '6 months later')",
   "music": "intro",
   "slides": [
@@ -17,7 +17,8 @@
     {
       "_location": "Intro slide 3",
       "illustration": "construction",
-      "caption": "Within weeks, bulldozers cleared the woods by Alex's house. A road was constructed along the river that Alex once called a place of respite. Trucks brought construction material, creating dust and smog that clouded Alex's vision of what he once called home."
+      "caption": "Within weeks, bulldozers cleared the woods by Alex's house. A road was constructed along the river that Alex once called a place of respite. Trucks brought construction material, creating dust and smog that clouded Alex's vision of what he once called home.",
+      "sound": "construction"
     },
     {
       "_location": "Intro slide 4",

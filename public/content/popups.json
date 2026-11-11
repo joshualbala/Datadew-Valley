@@ -190,6 +190,71 @@
           "text": "PLACEHOLDER (Author, Year)"
         }
       ]
+    },
+    "gpu-racks": {
+      "_location": "Inside the data center: '!' on the GPU racks",
+      "title": "PLACEHOLDER: The GPU racks",
+      "body": [
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: These racks are full of GPUs, the chips that train and run AI models. They run hot, day and night, and each rack can draw as much power as dozens of homes."
+        },
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: Building the hardware and the building itself also takes a lot of energy, before a single question is answered."
+        },
+        {
+          "type": "stat",
+          "value": "PLACEHOLDER: 40 kW",
+          "label": "per rack, around the clock"
+        },
+        {
+          "type": "citation",
+          "text": "PLACEHOLDER (Author, Year)"
+        }
+      ]
+    },
+    "cooling-water-usage": {
+      "_location": "Inside the data center: '!' on the municipal water tank",
+      "title": "PLACEHOLDER: Water for cooling",
+      "body": [
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: All that heat has to go somewhere. Cooling systems evaporate huge amounts of water to keep the machines from overheating."
+        },
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: Data centers use treated municipal water, the same water that comes out of residents' taps, because it has fewer minerals that could scale or damage the cooling equipment."
+        },
+        {
+          "type": "stat",
+          "value": "PLACEHOLDER: 5 million gallons",
+          "label": "of water a day"
+        },
+        {
+          "type": "citation",
+          "text": "PLACEHOLDER (Author, Year)"
+        }
+      ]
+    },
+    "electricity-usage": {
+      "_location": "Inside the data center: '!' on the power cabinets",
+      "title": "PLACEHOLDER: The power it takes",
+      "body": [
+        {
+          "type": "text",
+          "text": "PLACEHOLDER: This room feeds the whole building. The data center uses as much electricity as a small city, so the utility had to build new power lines and plants."
+        },
+        {
+          "type": "stat",
+          "value": "PLACEHOLDER: 100 MW",
+          "label": "enough for about 80,000 homes"
+        },
+        {
+          "type": "citation",
+          "text": "PLACEHOLDER (Author, Year)"
+        }
+      ]
     }
   }
 }

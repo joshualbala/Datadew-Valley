@@ -16,6 +16,8 @@ export interface HudContext {
   tilePx: number;
   /** Centers (screen px) of every tile/building of a kind. */
   centersOf(kind: string): { x: number; y: number }[];
+  /** The map's fixed noise (meter level and hum volume), if it sets one. */
+  noise?: { level: number; volume: number };
 }
 
 export interface RunningWidget {
@@ -89,7 +91,7 @@ export const widgetTypes: { [T in HudWidget['type']]: WidgetFactory<T> } = {
    * hum rise as Alex nears the source; clicking plays the recording in a pop-up.
    */
   noise(scene, cfg, ctx) {
-    const sources = ctx.centersOf(cfg.source);
+    const sources = (Array.isArray(cfg.source) ? cfg.source : [cfg.source]).flatMap((kind) => ctx.centersOf(kind));
     const range = cfg.range * ctx.tilePx;
     const w = 132;
     const h = 60;
@@ -122,7 +124,11 @@ export const widgetTypes: { [T in HudWidget['type']]: WidgetFactory<T> } = {
     hum?.setVolume(0, 0.01);
     hum?.play();
     let ducked = false;
-    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => hum?.stop(0.5));
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      hum?.stop(0.5);
+      audio.setMusicLevel(1);
+    });
+    const humRange = cfg.ambientRange * ctx.tilePx;
     makeReadable(
       scene,
       cfg,
@@ -141,6 +147,15 @@ export const widgetTypes: { [T in HudWidget['type']]: WidgetFactory<T> } = {
     let shown = -1;
     return {
       update(px, py) {
+        if (ctx.noise) {
+          // This map sets its own noise (e.g. inside the data center: meter maxed, hum very loud).
+          if (shown !== 99) {
+            shown = 99;
+            draw(ctx.noise.level);
+          }
+          if (hum && !ducked) hum.setVolume(ctx.noise.volume, 0.4);
+          return;
+        }
         let closest = Infinity;
         for (const s of sources) closest = Math.min(closest, Phaser.Math.Distance.Between(px, py, s.x, s.y));
         const level = Phaser.Math.Clamp(1 - closest / range, 0, 1);
@@ -149,7 +164,11 @@ export const widgetTypes: { [T in HudWidget['type']]: WidgetFactory<T> } = {
           shown = step;
           draw(level);
         }
-        if (hum && !ducked) hum.setVolume(Math.pow(level, 1.4) * cfg.ambientVolume, 0.3);
+        // The hum carries much farther than the bars: faint across town, strong up close.
+        const near = Phaser.Math.Clamp(1 - closest / humRange, 0, 1);
+        const loud = cfg.ambientMinVolume + (cfg.ambientVolume - cfg.ambientMinVolume) * Math.pow(near, 1.6);
+        if (hum && !ducked) hum.setVolume(loud, 0.3);
+        audio.setMusicLevel(1 - cfg.musicDip * Math.pow(near, 1.6), 0.6);
       },
     };
   },

@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { getContent } from '../../content/store';
-import { progress } from '../../state/progress';
 import { showError } from '../../ui/errorBox';
 import { isPopupOpen, openPopup } from '../../ui/popup';
 import { seeded } from '../art/illustrations/common';
@@ -12,10 +11,12 @@ import { startHud, type RunningWidget } from '../hud/widgets';
 import { parseMap } from '../map/grid';
 import { HotspotMarkers } from '../map/hotspots';
 import { MAP_SCALE, TILE, kinds, paintGround } from '../map/kinds';
+import { Doors } from '../map/doors';
 import { Townsfolk, coughPuff } from '../map/npcs';
 import { Player } from '../map/player';
 import { addWaterFlow } from '../map/waterFlow';
 import { addMuteButton } from '../ui/muteButton';
+import { addResetButton } from '../ui/resetButton';
 
 const TILE_PX = TILE * MAP_SCALE;
 const HUD_DEPTH = 200000;
@@ -34,19 +35,60 @@ export class MapScene extends Phaser.Scene {
   private widgets: RunningWidget[] = [];
   private townsfolk?: Townsfolk;
   private flowWater?: (deltaMs: number) => void;
+  private doors?: Doors;
+  /** Where Alex arrives when coming through a door (otherwise the map's spawn). */
+  private arriveAt?: { x: number; y: number };
+  private leaving = false;
 
   constructor() {
     super('Map');
   }
 
-  init(data: { map: string; popup?: string }): void {
+  init(data: { map: string; popup?: string; spawn?: { x: number; y: number } }): void {
     this.mapName = data.map;
     this.introPopup = data.popup;
+    this.arriveAt = data.spawn;
+    this.leaving = false;
+    this.doors = undefined;
     this.player = undefined;
     this.effects = [];
     this.widgets = [];
     this.townsfolk = undefined;
     this.flowWater = undefined;
+  }
+
+  /** Fade out and load the door's map, arriving at its spawn. */
+  private goThrough(door: { to: string; spawn: { x: number; y: number } }): void {
+    if (this.leaving) return;
+    this.leaving = true;
+    audio.sfx('close');
+    this.cameras.main.fadeOut(450, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.restart({ map: door.to, spawn: door.spawn }));
+  }
+
+  /** Blinking status lights on equipment (server racks, power cabinets), from the tile kind's `leds`. */
+  private addLeds(block: { kind: string; x: number; w: number }, sprite: { w: number; h: number }, bottom: number): void {
+    const leds = kinds[block.kind].leds;
+    if (!leds) return;
+    makeTexture(this, 'led-dot', 1, 1, (p) => p.px(0, 0, 0xffffff), MAP_SCALE);
+    const left = (block.x + block.w / 2) * TILE_PX - (sprite.w * MAP_SCALE) / 2;
+    const top = bottom - sprite.h * MAP_SCALE;
+    leds.at.forEach(([lx, ly], i) => {
+      const led = this.add
+        .image(left + lx * MAP_SCALE, top + ly * MAP_SCALE, 'led-dot')
+        .setOrigin(0)
+        .setTint(leds.colors[(i + block.x) % leds.colors.length])
+        .setDepth(bottom + 0.1);
+      this.tweens.add({
+        targets: led,
+        alpha: 0.2,
+        duration: Phaser.Math.Between(150, 600),
+        yoyo: true,
+        repeat: -1,
+        delay: Phaser.Math.Between(0, 1500),
+        repeatDelay: Phaser.Math.Between(100, 1800),
+      });
+    });
   }
 
   /** Alex is unwell: a cough every so often (audio.json → alexCoughSeconds). */
@@ -94,35 +136,34 @@ export class MapScene extends Phaser.Scene {
 
     // Trees, fences and buildings: sprites sorted by their base so Alex walks behind or in front.
     for (const block of grid.objects) {
-      const sprite = kinds[block.kind].object!(grid.neighborsOf(block.x, block.y), block);
+      const sprite = kinds[block.kind].object!(grid.neighborsOf(block.x, block.y), block, dryAt(block.x, block.y));
       const key = makeTexture(this, `tile-${block.kind}${sprite.variant ? `-${sprite.variant}` : ''}`, sprite.w, sprite.h, sprite.draw, MAP_SCALE);
       const bottom = (block.y + block.h) * TILE_PX + (sprite.sink ?? 0) * MAP_SCALE;
       this.add.image((block.x + block.w / 2) * TILE_PX, bottom, key).setOrigin(0.5, 1).setDepth(bottom);
+      this.addLeds(block, sprite, bottom);
     }
 
-    this.player = new Player(this, (map.spawn.x + 0.5) * TILE_PX, (map.spawn.y + 0.8) * TILE_PX, grid.walkable);
+    const start = this.arriveAt ?? map.spawn;
+    this.player = new Player(this, (start.x + 0.5) * TILE_PX, (start.y + 0.8) * TILE_PX, grid.walkable);
     this.markers = new HotspotMarkers(this, map.hotspots, grid);
-    this.townsfolk = new Townsfolk(this, map.npcs, grid.walkable);
+    this.townsfolk = new Townsfolk(this, map.npcs, grid);
     this.flowWater = addWaterFlow(this, grid);
     this.scheduleAlexCough();
+    this.doors = new Doors(this, map.doors, () => this.markers.isNear || this.leaving, (door) => this.goThrough(door));
 
     const centersOf = (kind: string) => grid.centersOf(kind).map((c) => ({ x: c.x * TILE_PX, y: c.y * TILE_PX }));
-    this.effects = startEffects(this, map.effects, { worldW, worldH, tilePx: TILE_PX, centersOf });
-    this.widgets = startHud(this, { depth: HUD_DEPTH, tilePx: TILE_PX, centersOf });
+    const blocksOf = (kind: string) =>
+      grid.objects.filter((b) => b.kind === kind).map((b) => ({ x: b.x * TILE_PX, y: b.y * TILE_PX, w: b.w * TILE_PX, h: b.h * TILE_PX }));
+    this.effects = startEffects(this, map.effects, { worldW, worldH, tilePx: TILE_PX, centersOf, blocksOf });
+    this.widgets = startHud(this, { depth: HUD_DEPTH, tilePx: TILE_PX, centersOf, noise: map.noise });
     addProgressCounter(this, HUD_DEPTH, 20, 166);
     addMuteButton(this, HUD_DEPTH);
+    addResetButton(this, HUD_DEPTH);
 
-    if (map.music) {
-      const track = getContent().audio.music[map.music];
-      if (track) audio.playMusic(map.music, track);
-    }
+    const track = map.music ? getContent().audio.music[map.music] : undefined;
+    if (map.music && track) audio.playMusic(map.music, track);
+    else audio.stopMusic(1.5); // e.g. inside the data center: only the machines
 
-    // TEMPORARY (until the website's Reset button, build step 9): R clears progress so the team can replay.
-    this.input.keyboard?.on('keydown-R', () => {
-      if (isPopupOpen()) return;
-      progress.reset();
-      this.scene.restart({ map: this.mapName });
-    });
 
     const cam = this.cameras.main;
     cam.setBounds(0, 0, worldW, worldH).setRoundPixels(true);
@@ -140,6 +181,7 @@ export class MapScene extends Phaser.Scene {
     this.player.update(delta, isPopupOpen());
     const { x, y } = this.player;
     this.markers.update(x, y);
+    this.doors?.update(x, y);
     for (const fx of this.effects) fx.update?.(x, y);
     for (const w of this.widgets) w.update?.(x, y);
     this.townsfolk?.update(delta, x, y);

@@ -10,6 +10,8 @@ export interface EffectContext {
   tilePx: number;
   /** Centers (screen px) of every tile/building of a kind, e.g. the data center. */
   centersOf(kind: string): { x: number; y: number }[];
+  /** Footprints (screen px) of every building of a kind. */
+  blocksOf(kind: string): { x: number; y: number; w: number; h: number }[];
 }
 
 /** A running effect; `update` gets Alex's feet position every frame. */
@@ -51,10 +53,12 @@ export const effects: Record<string, EffectFactory> = {
   },
 
   /**
-   * Smog around a source (e.g. the data center): a haze that is thickest at
-   * the source and fades over `radius` tiles, puffs drifting through it, and a
-   * screen tint that grows as Alex gets close.
-   * { "type": "smog", "source": "data-center", "radius": 14, "maxAlpha": 0.5, "color": "#8a8070" }
+   * Smog from a source (e.g. the data center): a haze that is thickest at the
+   * source and fades over `radius` tiles, puffs drifting through it, smog
+   * patches drifting over the whole town (`townClouds`, `townAlpha`), and a
+   * screen haze that never fully clears (`baseVeil`) and thickens near the source.
+   * { "type": "smog", "source": "data-center", "radius": 14, "maxAlpha": 0.5, "color": "#8a8070",
+   *   "townClouds": 12, "townAlpha": 0.22, "baseVeil": 0.1 }
    */
   smog(scene, cfg, ctx) {
     const sources = ctx.centersOf(str(cfg.source, 'data-center'));
@@ -83,16 +87,125 @@ export const effects: Record<string, EffectFactory> = {
         });
       }
     }
-    // Screen-wide haze that thickens as Alex walks toward the source.
-    const veil = scene.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, tint).setOrigin(0).setScrollFactor(0).setDepth(90000).setAlpha(0);
+    // Smog patches drifting slowly across the whole town, carried by the wind.
+    const townClouds = num(cfg.townClouds, 0);
+    const townAlpha = num(cfg.townAlpha, 0.2);
+    for (let i = 0; i < townClouds; i++) {
+      const w = Phaser.Math.Between(ctx.tilePx * 7, ctx.tilePx * 13);
+      const cloud = scene.add
+        .image(Phaser.Math.Between(0, ctx.worldW), Phaser.Math.Between(0, ctx.worldH), blob)
+        .setDisplaySize(w, w * 0.55)
+        .setTint(tint)
+        .setAlpha(townAlpha * Phaser.Math.FloatBetween(0.6, 1))
+        .setDepth(60002);
+      const drift = () => {
+        scene.tweens.add({
+          targets: cloud,
+          x: -w,
+          y: cloud.y + Phaser.Math.Between(-ctx.tilePx * 3, ctx.tilePx * 3),
+          duration: ((cloud.x + w) / ctx.worldW) * Phaser.Math.Between(90000, 140000),
+          onComplete: () => {
+            cloud.setPosition(ctx.worldW + w, Phaser.Math.Between(0, ctx.worldH));
+            drift();
+          },
+        });
+      };
+      drift();
+    }
+    // Screen-wide haze: always a little, thicker as Alex walks toward the source.
+    const baseVeil = num(cfg.baseVeil, 0);
+    const veil = scene.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, tint).setOrigin(0).setScrollFactor(0).setDepth(90000).setAlpha(baseVeil);
     return {
       update(px, py) {
         let closest = Infinity;
         for (const s of sources) closest = Math.min(closest, Phaser.Math.Distance.Between(px, py, s.x, s.y));
         const near = Phaser.Math.Clamp(1 - closest / (radius * 1.6), 0, 1);
-        veil.setAlpha(near * maxAlpha * 0.55);
+        veil.setAlpha(baseVeil + near * (maxAlpha * 0.55 - baseVeil));
       },
     };
+  },
+
+  /**
+   * Blinding floodlights around a source (e.g. the data center): bright cores
+   * with pulsing halos, and a white glare over the screen that grows as Alex
+   * gets within `radius` tiles of the source. With `lights` (a tile kind, e.g.
+   * "floodlight"), the lights sit on those posts, `lightHeight` tiles up;
+   * otherwise at the source's fence corners and roof.
+   * { "type": "glare", "source": "data-center", "lights": "floodlight", "lightHeight": 2.7, "radius": 9, "maxAlpha": 0.45 }
+   */
+  glare(scene, cfg, ctx) {
+    const blob = softBlob(scene, 'fx-blob', 128);
+    const blocks = ctx.blocksOf(str(cfg.source, 'data-center'));
+    const radius = num(cfg.radius, 9) * ctx.tilePx;
+    const maxAlpha = num(cfg.maxAlpha, 0.45);
+    let lights: { x: number; y: number }[] = [];
+    const postKind = typeof cfg.lights === 'string' ? cfg.lights : '';
+    if (postKind) {
+      const up = num(cfg.lightHeight, 2.7) * ctx.tilePx;
+      lights = ctx.centersOf(postKind).map((c) => ({ x: c.x, y: c.y + ctx.tilePx / 2 - up }));
+    }
+    for (const b of postKind ? [] : blocks) {
+      const front = b.y + b.h - ctx.tilePx * 0.3;
+      lights.push(
+        { x: b.x, y: front },
+        { x: b.x + b.w, y: front },
+        { x: b.x + b.w / 2, y: front },
+        { x: b.x + b.w * 0.2, y: b.y - ctx.tilePx * 0.4 },
+        { x: b.x + b.w * 0.8, y: b.y - ctx.tilePx * 0.4 },
+      );
+    }
+    lights.forEach((l, i) => {
+      // Compact but intense: a soft halo, a hot inner glow and a white core.
+      const halo = scene.add
+        .image(l.x, l.y, blob)
+        .setDisplaySize(ctx.tilePx * 3.4, ctx.tilePx * 2.6)
+        .setTint(0xfff1c0)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setAlpha(0.28)
+        .setDepth(61000);
+      scene.add
+        .image(l.x, l.y, blob)
+        .setDisplaySize(ctx.tilePx * 1.7, ctx.tilePx * 1.4)
+        .setTint(0xfff8e0)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setAlpha(0.4)
+        .setDepth(61001);
+      scene.add
+        .image(l.x, l.y, blob)
+        .setDisplaySize(ctx.tilePx * 0.8, ctx.tilePx * 0.7)
+        .setTint(0xffffff)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setAlpha(0.7)
+        .setDepth(61002);
+      scene.tweens.add({ targets: halo, alpha: 0.16, duration: 900 + i * 130, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    });
+    const centers = blocks.map((b) => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 }));
+    const veil = scene.add
+      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0xfff8e0)
+      .setOrigin(0)
+      .setScrollFactor(0)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setDepth(95000)
+      .setAlpha(0);
+    return {
+      update(px, py) {
+        let closest = Infinity;
+        for (const c of centers) closest = Math.min(closest, Phaser.Math.Distance.Between(px, py, c.x, c.y));
+        const near = Phaser.Math.Clamp(1 - closest / radius, 0, 1);
+        veil.setAlpha(maxAlpha * near * near);
+      },
+    };
+  },
+
+  /** A color wash over the whole screen, e.g. cool fluorescent light indoors. { "type": "tint", "color": "#3a6bb0", "alpha": 0.1 } */
+  tint(scene, cfg) {
+    scene.add
+      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, color(cfg.color, 0x3a6bb0))
+      .setOrigin(0)
+      .setScrollFactor(0)
+      .setDepth(89000)
+      .setAlpha(num(cfg.alpha, 0.1));
+    return {};
   },
 
   /** Overcast sky: soft cloud shadows drifting across the map. { "type": "overcast", "clouds": 7, "alpha": 0.18 } */

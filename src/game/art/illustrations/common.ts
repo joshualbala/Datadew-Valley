@@ -317,6 +317,16 @@ export const TOWNSFOLK: readonly Look[] = [
   { hair: 0x3d2b1f, skin: 0xa86b3c, shirt: 0x9b2335, pants: 0x264653, hairStyle: 'ponytail' },
 ];
 
+/** Data center workers in lab coats: women and men, varied skin tones and ages. */
+export const WORKERS: readonly Look[] = [
+  { hair: 0x2b1d14, skin: 0xc68642, shirt: 0xeef1f5, pants: 0x3a3f46, hairStyle: 'short' },
+  { hair: 0x141010, skin: 0x6b4226, shirt: 0xeef1f5, pants: 0x2c3e66, hairStyle: 'long', bottom: 'skirt' },
+  { hair: 0xe8c872, skin: 0xffdbac, shirt: 0xeef1f5, pants: 0x3a3f46, hairStyle: 'ponytail' },
+  { hair: 0x1a1a1a, skin: 0xf0c8a0, shirt: 0xeef1f5, pants: 0x4a4e69, hairStyle: 'short' },
+  { hair: 0xb0b0b0, skin: 0xe0ac69, shirt: 0xeef1f5, pants: 0x4a3b6b, hairStyle: 'bun', bottom: 'skirt' },
+  { hair: 0x3d2b1f, skin: 0x8d5524, shirt: 0xeef1f5, pants: 0x3a3f46, hairStyle: 'bun' },
+];
+
 const darker = (c: number, f = 0.75) =>
   (Math.round(((c >> 16) & 0xff) * f) << 16) | (Math.round(((c >> 8) & 0xff) * f) << 8) | Math.round((c & 0xff) * f);
 

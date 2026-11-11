@@ -57,7 +57,7 @@ function coughBurst(ctx: AudioContext, out: AudioNode, at: number, pitch: number
   low.frequency.value = 700;
   const vg = ctx.createGain();
   vg.gain.setValueAtTime(0, at);
-  vg.gain.linearRampToValueAtTime(vol * 0.35, at + 0.015);
+  vg.gain.linearRampToValueAtTime(vol * 0.55, at + 0.015);
   vg.gain.exponentialRampToValueAtTime(0.0001, at + length * 0.8);
   voice.connect(low).connect(vg).connect(out);
   voice.start(at);
@@ -85,7 +85,7 @@ export function playSfx(ctx: AudioContext, out: AudioNode, name: SfxName, opts: 
       const count = 2 + Math.round(Math.random());
       let at = t;
       for (let i = 0; i < count; i++) {
-        coughBurst(ctx, out, at, pitch * (1 - i * 0.04), 0.55 * volume * (1 - i * 0.2), 0.16 + Math.random() * 0.05);
+        coughBurst(ctx, out, at, pitch * (1 - i * 0.04), 1.1 * volume * (1 - i * 0.18), 0.17 + Math.random() * 0.05);
         at += 0.24 + Math.random() * 0.08;
       }
       break;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_description": "General on-screen text for the game. 'start' = the first screen (needed so the browser allows sound): 'prompt' is the main line, 'soundNote' the smaller line under it. 'title' = the opening page: 'heading' is the big game name, 'tagline' is an optional line under it (leave \"\" to hide), 'enterButton' is the button label, 'hint' is the small text under the button. 'sequence' = the intro slides: 'nextHint' is the small text in the caption box telling players how to continue, 'backButton' is the label of the button that goes to the previous slide. 'popup' = pop-up windows: 'continueButton' is the default closing button label. 'map' = the game map: 'interactHint' shows above a '!' when Alex is close, 'progress' is the counter in the corner ({read} and {total} become numbers).",
+  "_description": "General on-screen text for the game. 'start' = the first screen (needed so the browser allows sound): 'prompt' is the main line, 'soundNote' the smaller line under it. 'title' = the opening page: 'heading' is the big game name, 'tagline' is an optional line under it (leave \"\" to hide), 'enterButton' is the button label, 'hint' is the small text under the button. 'sequence' = the intro slides: 'nextHint' is the small text in the caption box telling players how to continue, 'backButton' is the label of the button that goes to the previous slide. 'popup' = pop-up windows: 'continueButton' is the default closing button label. 'map' = the game map: 'interactHint' shows above a '!' when Alex is close, 'progress' is the counter in the corner ({read} and {total} become numbers). 'reset' = the Reset button in the game's top-right corner: 'confirm' is the note shown after the first click (a second click clears all progress and returns to the title screen).",
   "_usedIn": "Simulation page → Start screen, Title screen (opening page), Intro slides, Pop-ups, Game map",
   "start": {
     "_location": "Very first screen, dark background, before the opening page",
@@ -27,5 +27,9 @@
     "_location": "Game map: above a nearby '!' and the counter in the top-left corner",
     "interactHint": "Press E",
     "progress": "{read} / {total} read"
+  },
+  "reset": {
+    "_location": "Game: under the Reset button (top-right, next to mute) after the first click",
+    "confirm": "Click again to reset all progress"
   }
 }

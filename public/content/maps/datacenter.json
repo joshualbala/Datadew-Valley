@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "_description": "Inside the data center, as a grid of letters (same format as maps/valley.json; see its _description). Inside tile kinds: floor (raised floor), vent (cold-aisle vented floor), cables (floor with cable runs), wall, exit-door (in a wall), server-rack, gpu-rack, ups-cabinet (battery), power-cabinet, storage-shelf (each 1 wide × 2 tall, most with blinking lights), cooling-unit, water-tank, transformer (2 × 2), workstation (workers stop at these), server-cart, crates, extinguisher (1 × 1). 'doors' leads back out to the valley. 'npcs' with role \"worker\" are data center scientists in lab coats (looks 0–5: 0 and 3 are men; 1, 2, 4 and 5 are women). Each hotspot covers its whole piece of equipment ('area'), which glows when Alex is near. 'noise' fixes the noise meter and hum in here: 'level' 1 = meter maxed, 'volume' = how loud the hum is (above 1 = really loud).",
+  "_usedIn": "Simulation page → inside the data center (reached through the gate in the valley)",
+  "noise": {
+    "level": 1,
+    "volume": 1.4
+  },
+  "effects": [
+    {
+      "type": "tint",
+      "color": "#3a6bb0",
+      "alpha": 0.1
+    }
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "v": "vent",
+    "D": "exit-door",
+    "S": "server-rack",
+    "G": "gpu-rack",
+    "C": "cooling-unit",
+    "K": "water-tank",
+    "P": "power-cabinet",
+    "X": "transformer",
+    "w": "workstation",
+    "y": "cables",
+    "U": "ups-cabinet",
+    "H": "storage-shelf",
+    "c": "server-cart",
+    "b": "crates",
+    "e": "extinguisher"
+  },
+  "spawn": {
+    "_location": "Just inside the exit door on the right",
+    "x": 30,
+    "y": 7
+  },
+  "hotspots": [
+    {
+      "_location": "Inside: the rows of GPU racks",
+      "id": "gpu-racks",
+      "popup": "gpu-racks",
+      "x": 7,
+      "y": 7,
+      "area": "gpu-rack",
+      "highlightColor": "#9dff3a"
+    },
+    {
+      "_location": "Inside: the municipal water tank by the cooling units",
+      "id": "cooling-water-usage",
+      "popup": "cooling-water-usage",
+      "x": 25,
+      "y": 4,
+      "area": "water-tank",
+      "highlightColor": "#7fd0ff"
+    },
+    {
+      "_location": "Inside: the power cabinets and transformer",
+      "id": "electricity-usage",
+      "popup": "electricity-usage",
+      "x": 18,
+      "y": 8,
+      "area": "power-cabinet",
+      "highlightColor": "#ffd84a"
+    }
+  ],
+  "doors": [
+    {
+      "_location": "Exit door in the right-hand wall",
+      "x": 31,
+      "y": 7,
+      "to": "valley",
+      "spawn": {
+        "x": 37,
+        "y": 9
+      },
+      "hint": "Press E to leave"
+    }
+  ],
+  "npcs": [
+    {
+      "_location": "By the workstation near the cooling units",
+      "role": "worker",
+      "look": 0,
+      "mood": "neutral",
+      "x": 18,
+      "y": 7
+    },
+    {
+      "_location": "Near the water tanks",
+      "role": "worker",
+      "look": 1,
+      "mood": "neutral",
+      "x": 26,
+      "y": 7
+    },
+    {
+      "_location": "Walkway below the racks",
+      "role": "worker",
+      "look": 2,
+      "mood": "neutral",
+      "x": 6,
+      "y": 12
+    },
+    {
+      "_location": "Between the GPU racks and the power room",
+      "role": "worker",
+      "look": 3,
+      "mood": "neutral",
+      "x": 14,
+      "y": 10
+    },
+    {
+      "_location": "By the storage shelves",
+      "role": "worker",
+      "look": 4,
+      "mood": "neutral",
+      "x": 19,
+      "y": 12
+    },
+    {
+      "_location": "Cold aisle, by the cooling units",
+      "role": "worker",
+      "look": 5,
+      "mood": "neutral",
+      "x": 16,
+      "y": 5
+    }
+  ],
+  "grid": [
+    "################################",
+    "################################",
+    "#e....b...........c............#",
+    "#.SSSSSSSSSSSS..CC.CC.CC..KK.KK#",
+    "#.SSSSSSSSSSSS..CC.CC.CC..KK.KK#",
+    "#vvvvvvvvvvvvvv................#",
+    "#vvvvvvvvvvvvvv.w...w...w..bb..#",
+    "#.GGGGGGGGGGGG.................D",
+    "#.GGGGGGGGGGGG..PPPPPP..XX.UUU.#",
+    "#yyyyyyyyyyyyyy.PPPPPP..XX.UUU.#",
+    "#.SSSSSSSSSSSS..HHH.c..........#",
+    "#.SSSSSSSSSSSS..HHH...w..bb.e..#",
+    "#..............................#",
+    "################################"
+  ]
+}

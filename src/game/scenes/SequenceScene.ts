@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import type { SequenceContent } from '../../content/schemas';
 import { getContent } from '../../content/store';
-import { audio } from '../audio/audioManager';
+import { audio, type SoundHandle } from '../audio/audioManager';
 import { makeTexture } from '../art/pixel';
 import { PICTURE_H, PICTURE_W, gridOf, illustrations, type IllustrationStage } from '../art/illustrations';
 import { FONT, GAME_WIDTH } from '../constants';
@@ -16,7 +16,7 @@ const PIC_Y = 14;
 const BOX_Y = PIC_Y + PIC_H + 16;
 const BOX_H = 540 - BOX_Y - 10;
 const PAD = 22;
-const CAPTION_SIZES = [30, 27, 24, 21]; // shrink to fit if a caption is long
+const CAPTION_SIZES = [46, 42, 38, 35, 32, 30, 27, 24, 21]; // the largest that fits is used
 const FADE_MS = 180;
 const MUTE_SPACE = 64; // caption text wraps before the mute button in the box's top-right corner
 
@@ -35,6 +35,7 @@ export class SequenceScene extends Phaser.Scene {
   private back!: Phaser.GameObjects.Container;
   private hint!: Phaser.GameObjects.Text;
   private mask!: Phaser.Display.Masks.GeometryMask;
+  private slideSound: SoundHandle | null = null;
 
   constructor() {
     super('Sequence');
@@ -45,6 +46,7 @@ export class SequenceScene extends Phaser.Scene {
     this.index = 0;
     this.busy = false;
     this.layer = undefined;
+    this.slideSound = null;
   }
 
   create(): void {
@@ -88,6 +90,7 @@ export class SequenceScene extends Phaser.Scene {
     for (const key of ['ENTER', 'SPACE', 'RIGHT']) keys?.on(`keydown-${key}`, () => this.forward());
     for (const key of ['LEFT', 'BACKSPACE']) keys?.on(`keydown-${key}`, () => this.backward());
 
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.setSlideSound(undefined));
     this.showSlide(0);
     this.cameras.main.fadeIn(500, 0, 0, 0);
   }
@@ -144,19 +147,44 @@ export class SequenceScene extends Phaser.Scene {
     }
 
     this.setCaption(slide.caption);
+    this.setSlideSound(slide.sound);
     this.back.setVisible(index > 0);
     this.hint.setAlpha(1);
     this.tweens.add({ targets: this.hint, alpha: 0.55, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
   }
 
-  /** Set the caption, shrinking the font if it would run into the buttons. */
+  /**
+   * Set the caption at the largest size that fits the box (short captions get
+   * big text, long ones shrink), centered vertically above the buttons.
+   */
   private setCaption(caption: string): void {
-    const maxHeight = BOX_H - 14 - 36;
+    const top = BOX_Y + 10;
+    const maxHeight = BOX_H - 10 - 34;
+    let fitted = false;
     for (const size of CAPTION_SIZES) {
       this.caption.setFontSize(size).setText(caption);
-      if (this.caption.height <= maxHeight) return;
+      if (this.caption.height <= maxHeight) {
+        fitted = true;
+        break;
+      }
     }
-    console.warn(`Caption is too long to fit on one slide: "${caption.slice(0, 40)}…"`);
+    if (!fitted) console.warn(`Caption is too long to fit on one slide: "${caption.slice(0, 40)}…"`);
+    this.caption.setY(top + Math.max(0, (maxHeight - this.caption.height) / 2));
+  }
+
+  /** Play a slide's own sound instead of the music (or bring the music back). */
+  private setSlideSound(key: string | undefined): void {
+    this.slideSound?.stop(0.6);
+    this.slideSound = null;
+    const def = key ? getContent().audio.sounds[key] : undefined;
+    if (key && !def) console.warn(`sequences/${this.sequenceName}.json: no sound "${key}" in audio.json → sounds`);
+    if (key && def) {
+      audio.setMusicLevel(0, 0.8);
+      this.slideSound = audio.sound(key, def);
+      this.slideSound.play();
+    } else {
+      audio.setMusicLevel(1, 0.8);
+    }
   }
 
   private stageFor(layer: Phaser.GameObjects.Container, PX: number): IllustrationStage {

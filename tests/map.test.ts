@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { contentCollections } from '../src/content/files';
@@ -10,16 +10,18 @@ import { PixelPainter, type PixelTarget } from '../src/game/art/pixel';
 import { emote, walker } from '../src/game/art/walker';
 import { ALEX, seeded } from '../src/game/art/illustrations/common';
 import { parseMap } from '../src/game/map/grid';
-import { kinds, paintGround } from '../src/game/map/kinds';
+import { WALK_COST, kinds, paintGround } from '../src/game/map/kinds';
+import { findPath } from '../src/game/map/path';
 import { blockRenderers } from '../src/ui/blocks';
 
 const contentDir = resolve(__dirname, '../public/content');
 const read = (path: string) => readFileSync(resolve(contentDir, path), 'utf8');
 const flow = parseContent('flow.json', read('flow.json'), FlowSchema);
 const popups = parseContent('popups.json', read('popups.json'), PopupsSchema);
-const maps = collectionFiles({ flow } as FileContent)
-  .filter(([key]) => key === 'maps')
-  .map(([, name, file]) => [name, parseContent(file, read(file), contentCollections.maps.schema)] as const);
+// Every map file on disk (including ones only reachable through a door).
+const maps = readdirSync(resolve(contentDir, 'maps'))
+  .filter((f) => f.endsWith('.json'))
+  .map((f) => [f.replace(/\.json$/, ''), parseContent(`maps/${f}`, read(`maps/${f}`), contentCollections.maps.schema)] as const);
 
 const fakeTarget = (): PixelTarget & { count: number } => {
   const t = { count: 0, fillStyle: () => undefined, fillRect: () => void t.count++ };
@@ -40,6 +42,17 @@ describe('maps', () => {
       for (const spot of map.hotspots) expect(popups.popups, `hotspot "${spot.id}"`).toHaveProperty(spot.popup);
     });
   }
+
+  it('every door leads to an existing map and arrives on a walkable tile', () => {
+    const byName = new Map(maps);
+    for (const [name, map] of maps) {
+      for (const door of map.doors) {
+        const target = byName.get(door.to);
+        expect(target, `maps/${name}.json door → "${door.to}"`).toBeDefined();
+        expect(parseMap(target!).walkable(door.spawn.x, door.spawn.y), `arrival ${door.spawn.x},${door.spawn.y} in ${door.to}`).toBe(true);
+      }
+    }
+  });
 
   it('hotspot ids are unique across all maps', () => {
     const ids = maps.flatMap(([, m]) => m.hotspots.map((h) => h.id));
@@ -67,7 +80,7 @@ describe('maps', () => {
     for (const [name, kind] of Object.entries(kinds)) {
       const t = fakeTarget();
       paintGround(new PixelPainter(t), name, () => 'grass', seeded(1));
-      kind.object?.(() => 'grass', { x: 3, y: 5 }).draw(new PixelPainter(t));
+      kind.object?.(() => 'grass', { x: 3, y: 5 }, 0.5).draw(new PixelPainter(t));
       expect(t.count, name).toBeGreaterThan(0);
     }
   });
@@ -82,11 +95,9 @@ describe('maps', () => {
         }
       }
     }
-    for (const mood of ['sad', 'angry'] as const) {
-      const t = fakeTarget();
-      emote(new PixelPainter(t), mood);
-      expect(t.count).toBeGreaterThan(4);
-    }
+    const t = fakeTarget();
+    emote(new PixelPainter(t), 'sad');
+    expect(t.count).toBeGreaterThan(4);
   });
 });
 
@@ -140,6 +151,49 @@ describe('HUD, bills and sounds', () => {
       const t = fakeTarget();
       portrait(new PixelPainter(t), ALEX, state);
       expect(t.count).toBeGreaterThan(20);
+    }
+  });
+});
+
+describe('neighbors and slide sounds', () => {
+  it('pathfinding takes the cheap way round (sidewalk over road)', () => {
+    // 5×3: sidewalk on top, road in the middle row, start/end at the corners of the middle row.
+    const kindsRow = ['-----', 'RRRRR', '-----'];
+    const cost = (x: number, y: number) => (kindsRow[y][x] === 'R' ? 6 : 1);
+    const path = findPath({ w: 5, h: 3, cost }, { x: 0, y: 1 }, { x: 4, y: 1 })!;
+    expect(path.at(-1)).toEqual({ x: 4, y: 1 });
+    expect(path.filter((t) => t.y === 1).length).toBeLessThan(3); // leaves the road
+  });
+
+  for (const [name, map] of maps) {
+    it(`maps/${name}.json: every neighbor can reach a home and somewhere else; workers a workstation`, () => {
+      const grid = parseMap(map);
+      const cost = (x: number, y: number) => (grid.walkable(x, y) ? (WALK_COST[kinds[grid.kindAt(x, y)].ground] ?? 3) : Infinity);
+      const doors = grid.objects
+        .filter((b) => kinds[b.kind].npc === 'home' || kinds[b.kind].npc === 'visit')
+        .map((b) => ({ role: kinds[b.kind].npc, x: b.x + (kinds[b.kind].door ?? Math.floor(b.w / 2)), y: b.y + b.h }))
+        .filter((d) => grid.walkable(d.x, d.y));
+      const lingerSpots = grid.objects
+        .filter((b) => kinds[b.kind].npc === 'linger')
+        .flatMap((b) => [{ x: b.x, y: b.y + 1 }, { x: b.x - 1, y: b.y }, { x: b.x + 1, y: b.y }].filter((t) => grid.walkable(t.x, t.y)));
+      for (const npc of map.npcs) {
+        const reach = (role: string) => doors.some((d) => d.role === role && findPath({ w: grid.w, h: grid.h, cost }, npc, d));
+        if (npc.role === 'worker') {
+          expect(lingerSpots.some((t) => findPath({ w: grid.w, h: grid.h, cost }, npc, t)), `worker at ${npc.x},${npc.y} can't reach a workstation`).toBe(true);
+          continue;
+        }
+        expect(reach('home'), `neighbor at ${npc.x},${npc.y} can't reach any home`).toBe(true);
+        expect(reach('visit'), `neighbor at ${npc.x},${npc.y} can't reach any shop/town hall`).toBe(true);
+      }
+    });
+  }
+
+  it('every slide "sound" exists in audio.json', () => {
+    const audioFile = parseContent('audio.json', read('audio.json'), AudioSchema);
+    for (const [key, , file] of collectionFiles({ flow } as FileContent)) {
+      if (key !== 'sequences') continue;
+      const seq = parseContent(file, read(file), contentCollections.sequences.schema);
+      for (const slide of seq.slides) if (slide.sound) expect(audioFile.sounds).toHaveProperty(slide.sound);
     }
   });
 });

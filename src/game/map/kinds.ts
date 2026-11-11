@@ -2,7 +2,28 @@ import { dataCenter, townHall } from '../art/buildings';
 import { cottage, type Rng } from '../art/illustrations/common';
 import { C } from '../art/palette';
 import type { PixelPainter } from '../art/pixel';
-import { bush, oak, pine } from '../art/props';
+import { bush, oak, pine, wiltedOak, wiltedPine } from '../art/props';
+import {
+  workstation,
+  coolingUnit,
+  exitDoor,
+  floodlightPost,
+  gpuRack,
+  LEDS_COOLING,
+  LEDS_GPU,
+  LEDS_POWER,
+  LEDS_RACK,
+  LEDS_UPS,
+  crates,
+  extinguisher,
+  powerCabinet,
+  serverCart,
+  storageShelf,
+  upsCabinet,
+  serverRack,
+  transformer,
+  waterTank,
+} from '../art/interior';
 import {
   bench,
   car,
@@ -53,10 +74,32 @@ export interface Kind {
   size?: [number, number];
   /**
    * Something standing on the tile (tree, building), drawn as a y-sorted sprite.
-   * `at` is the block's top-left tile, used to vary colors between neighbors.
+   * `at` is the block's top-left tile, used to vary colors between neighbors;
+   * `dry` (0–1) is how close it is to the map's dryness source (trees wilt).
    */
-  object?: (n: Neighbors, at: { x: number; y: number }) => Sprite;
+  object?: (n: Neighbors, at: { x: number; y: number }, dry: number) => Sprite;
+  /**
+   * What townspeople do with it: "home" (a house they live in and go into),
+   * "visit" (a shop or public building they walk to and step inside), or
+   * "linger" (a well or bench they stand beside for a while).
+   */
+  npc?: 'home' | 'visit' | 'linger';
+  /** Column of the front door, in tiles from the building's left edge (default: the middle). */
+  door?: number;
+  /** Blinking status lights on the sprite: [x, y] in sprite art pixels, and their colors. */
+  leds?: { at: [number, number][]; colors: number[] };
 }
+
+/** How much neighbors prefer to walk on each ground: sidewalks first, roads only to cross. */
+export const WALK_COST: Partial<Record<keyof typeof grounds, number>> = {
+  sidewalk: 1,
+  path: 1,
+  bridge: 1.5,
+  grass: 3,
+  flowers: 3,
+  dirt: 4,
+  road: 6,
+};
 
 // ------------------------------------------------------------------ colors
 
@@ -163,6 +206,48 @@ export const grounds = {
       const x = r ? TILE - 1 : 0;
       for (let y = 1; y < TILE; y += 8) p.rect(x, y, 1, 5, ASPHALT.center);
     }
+  },
+
+  /** Raised data center floor: light gray panels with tiny perforations. */
+  floor(p: PixelPainter) {
+    p.rect(0, 0, TILE, TILE, 0xb9bec6).rect(0, 0, TILE, 1, 0xa3a9b1).rect(0, 0, 1, TILE, 0xa3a9b1);
+    p.rect(1, 1, TILE - 1, 1, 0xc9ced5);
+    for (const [x, y] of [[4, 4], [11, 4], [4, 11], [11, 11]]) p.px(x, y, 0x9aa0a8);
+  },
+
+  /** Cold-aisle floor: vented panels with a faint blue chill. */
+  vent(p: PixelPainter) {
+    grounds.floor(p);
+    for (let y = 3; y < 14; y += 2) p.rect(3, y, 10, 1, 0x7f8790);
+    p.rect(0, 0, TILE, TILE, 0x6fb3ff, 0.12);
+  },
+
+  /** Inside wall: dark concrete; the face shows where it meets the floor, with a baseboard, light strip and fixtures. */
+  wall(p: PixelPainter, n: Neighbors, rng: Rng) {
+    const onFloor = (k: string) => kinds[k]?.walkable === true;
+    p.rect(0, 0, TILE, TILE, 0x2f343b);
+    p.rect(0, 0, TILE, 1, 0x3b4048).rect(0, 7, TILE, 1, 0x262a30);
+    // Pipes and conduits running along the top of the wall.
+    p.rect(0, 1, TILE, 2, 0x5a6470).rect(0, 1, TILE, 1, 0x7a8592);
+    if (onFloor(n(0, 1))) {
+      p.rect(0, 4, TILE, 10, 0x4a5058).rect(0, 4, TILE, 1, 0x5a616b).rect(0, 14, TILE, 2, 0x1f2328);
+      p.rect(0, 6, TILE, 1, 0xdff4ff, 0.6); // light strip
+      const fixture = rng.frac();
+      if (fixture < 0.3) {
+        for (let y = 8; y < 13; y += 2) p.rect(3, y, 10, 1, 0x2a2e33); // vent grille
+      } else if (fixture < 0.45) {
+        for (let i = 0; i < 5; i++) p.rect(8 - i, 8 + i, 1 + i * 2, 1, 0xf2c230); // hazard sign
+        p.rect(8, 9, 1, 2, 0x111316).px(8, 12, 0x111316);
+      } else if (fixture < 0.6) {
+        p.rect(5, 8, 6, 5, 0x6b7280).rect(6, 9, 4, 1, 0x5cff8a); // junction box
+      }
+    }
+  },
+
+  /** Hot-aisle floor with bundles of yellow and black cables running across it. */
+  cables(p: PixelPainter) {
+    grounds.floor(p);
+    p.rect(0, 5, TILE, 2, 0x2a2e33).rect(0, 8, TILE, 2, 0xd9a21b).rect(0, 11, TILE, 1, 0x2a2e33).rect(0, 8, TILE, 1, 0xf2c230);
   },
 
   /** Concrete sidewalk with expansion joints. */
@@ -300,6 +385,16 @@ const wellSprite: Sprite = {
   },
 };
 
+/**
+ * A tree sprite wilted by `dry` (0–1): somewhat wilted everywhere, badly
+ * wilted nearer the source, and dead (wilt 1) close to it. Rounded to quarter
+ * steps so textures are shared.
+ */
+const wilted = (w: number, h: number, draw: (p: PixelPainter, wilt: number) => void, dry: number): Sprite => {
+  const wilt = Math.min(1, Math.round((0.3 + 1.2 * dry) * 4) / 4);
+  return { w, h, sink: -2, variant: String(wilt), draw: (p) => draw(p, wilt) };
+};
+
 /** A 1-tile street prop: drawn standing on the tile's bottom edge. */
 const prop = (w: number, h: number, draw: (p: PixelPainter) => void, sink = -3): Kind['object'] => () => ({ w, h, sink, draw });
 /** A prop whose colors vary by position. */
@@ -322,20 +417,80 @@ export const kinds: Record<string, Kind> = {
   bridge: { ground: 'bridge', walkable: true },
 
   // Nature.
-  'tree-pine': { ground: 'grass', walkable: false, object: () => ({ w: 22, h: 42, sink: -2, draw: pine }) },
-  'tree-oak': { ground: 'grass', walkable: false, object: () => ({ w: 30, h: 36, sink: -2, draw: oak }) },
+  // Trees wilt: a little everywhere in the valley, badly near the dryness source (the data center).
+  'tree-pine': { ground: 'grass', walkable: false, object: (_n, _at, dry) => wilted(22, 42, wiltedPine, dry) },
+  'tree-oak': { ground: 'grass', walkable: false, object: (_n, _at, dry) => wilted(30, 36, wiltedOak, dry) },
+  /** Floodlight post (its light comes from the "glare" map effect). */
+  floodlight: { ground: 'dirt', walkable: false, object: prop(12, 50, floodlightPost, -2) },
+
+  // Inside the data center.
+  floor: { ground: 'floor', walkable: true },
+  /** Floor with cable runs across it (walkable). */
+  cables: { ground: 'cables', walkable: true },
+  'ups-cabinet': {
+    ground: 'floor',
+    walkable: false,
+    size: [1, 2],
+    object: prop(16, 40, upsCabinet, 0),
+    leds: { at: LEDS_UPS, colors: [0x5cff8a, 0xffd25c] },
+  },
+  'storage-shelf': { ground: 'floor', walkable: false, size: [1, 2], object: prop(16, 40, storageShelf, 0) },
+  'server-cart': { ground: 'floor', walkable: false, object: prop(16, 22, serverCart, -1) },
+  crates: { ground: 'floor', walkable: false, object: prop(16, 18, crates, -1) },
+  extinguisher: { ground: 'floor', walkable: false, object: prop(16, 22, extinguisher, -1) },
+  vent: { ground: 'vent', walkable: true },
+  wall: { ground: 'wall', walkable: false },
+  'exit-door': { ground: 'wall', walkable: false, object: prop(16, 32, exitDoor, 0) },
+  'server-rack': {
+    ground: 'floor',
+    walkable: false,
+    size: [1, 2],
+    object: prop(16, 40, serverRack, 0),
+    leds: { at: LEDS_RACK, colors: [0x5cff8a, 0x5cff8a, 0x5cc8ff, 0xffd25c] },
+  },
+  'gpu-rack': {
+    ground: 'floor',
+    walkable: false,
+    size: [1, 2],
+    object: prop(16, 40, gpuRack, 0),
+    leds: { at: LEDS_GPU, colors: [0x9dff3a, 0x76b900] },
+  },
+  'cooling-unit': {
+    ground: 'floor',
+    walkable: false,
+    size: [2, 2],
+    object: prop(32, 44, coolingUnit, 0),
+    leds: { at: LEDS_COOLING, colors: [0x5cc8ff] },
+  },
+  'water-tank': { ground: 'floor', walkable: false, size: [2, 2], object: prop(32, 46, waterTank, 0) },
+  'power-cabinet': {
+    ground: 'floor',
+    walkable: false,
+    size: [1, 2],
+    object: prop(16, 40, powerCabinet, 0),
+    leds: { at: LEDS_POWER, colors: [0xff4b4b, 0x5cff8a] },
+  },
+  transformer: { ground: 'floor', walkable: false, size: [2, 2], object: prop(32, 40, transformer, 0) },
+  /** A workstation; workers stop at these. */
+  workstation: { ground: 'floor', walkable: false, object: prop(16, 24, workstation, -1), npc: 'linger' },
+
+  /** A dead tree standing on cleared, bare ground. */
+  'tree-dead': { ground: 'dirt', walkable: false, object: (_n, at) => ((at.x + at.y) % 2 ? wilted(30, 36, wiltedOak, 1) : wilted(22, 42, wiltedPine, 1)) },
+  /** Healthy trees, for maps from before the data center. */
+  'tree-pine-healthy': { ground: 'grass', walkable: false, object: () => ({ w: 22, h: 42, sink: -2, draw: pine }) },
+  'tree-oak-healthy': { ground: 'grass', walkable: false, object: () => ({ w: 30, h: 36, sink: -2, draw: oak }) },
   bush: { ground: 'grass', walkable: false, object: () => ({ w: 20, h: 11, sink: -2, draw: bush }) },
   rock: { ground: 'grass', walkable: false, object: () => rockSprite },
   stump: { ground: 'dirt', walkable: false, object: () => stumpSprite },
   fence: { ground: 'grass', walkable: false, object: fence },
 
   // Street furniture.
-  well: { ground: 'grass', walkable: false, object: () => wellSprite },
+  well: { ground: 'grass', walkable: false, object: () => wellSprite, npc: 'linger' },
   'trash-can': { ground: 'grass', walkable: false, object: variedProp(10, 15, trashCan) },
   mailbox: { ground: 'grass', walkable: false, object: variedProp(10, 16, mailbox) },
   /** Alex's own mailbox (teal, like Alex's shirt). */
   'alex-mailbox': { ground: 'grass', walkable: false, object: prop(10, 16, (p) => mailbox(p, 0, 0x2e9e8f)) },
-  bench: { ground: 'grass', walkable: false, object: prop(18, 12, bench) },
+  bench: { ground: 'grass', walkable: false, object: prop(18, 12, bench), npc: 'linger' },
   'stop-sign': { ground: 'sidewalk', walkable: false, object: prop(12, 26, stopSign) },
   'street-sign': { ground: 'sidewalk', walkable: false, object: prop(14, 26, streetSign) },
   lamp: { ground: 'sidewalk', walkable: false, object: prop(8, 36, streetLamp) },
@@ -352,18 +507,20 @@ export const kinds: Record<string, Kind> = {
     object: () => ({ w: 48, h: 48, sink: 2, draw: (p) => cottage(p, 2, 46) }),
   },
   /** A neighbor's gable-roof house (colors vary): 3×2 tiles. */
-  house: { ground: 'grass', walkable: false, size: [3, 2], object: variedProp(48, 48, gableHouse, 2) },
+  house: { ground: 'grass', walkable: false, size: [3, 2], object: variedProp(48, 48, gableHouse, 2), npc: 'home' },
   /** A flat-roof modern house (colors vary): 3×2 tiles. */
-  'house-modern': { ground: 'grass', walkable: false, size: [3, 2], object: variedProp(48, 46, modernHouse, 2) },
+  'house-modern': { ground: 'grass', walkable: false, size: [3, 2], object: variedProp(48, 46, modernHouse, 2), npc: 'home', door: 2 },
   /** A two-story house with a porch (colors vary): 3×2 tiles. */
-  'house-tall': { ground: 'grass', walkable: false, size: [3, 2], object: variedProp(48, 62, tallHouse, 2) },
+  'house-tall': { ground: 'grass', walkable: false, size: [3, 2], object: variedProp(48, 62, tallHouse, 2), npc: 'home' },
   /** A shop with an awning; its sign shows a cup, bread, book or pharmacy cross: 4×2 tiles. */
-  shop: { ground: 'sidewalk', walkable: false, size: [4, 2], object: variedProp(64, 50, shop, 2) },
+  shop: { ground: 'sidewalk', walkable: false, size: [4, 2], object: variedProp(64, 50, shop, 2), npc: 'visit', door: 3 },
   /** Town hall: 8×3 tiles. */
   'town-hall': {
     ground: 'grass',
     walkable: false,
     size: [8, 3],
+    npc: 'visit',
+    door: 3,
     object: () => ({
       w: 128,
       h: 112,

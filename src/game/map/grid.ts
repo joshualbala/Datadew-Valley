@@ -1,5 +1,5 @@
 import type { MapContent } from '../../content/schemas';
-import { TOWNSFOLK } from '../art/illustrations/common';
+import { TOWNSFOLK, WORKERS } from '../art/illustrations/common';
 import { kinds, type Neighbors } from './kinds';
 
 export interface Block {
@@ -89,8 +89,12 @@ export function parseMap(map: MapContent): ParsedMap {
     if (!usedKinds.has(source)) errors.push(`dryness.source "${source}" is not a tile kind in the legend.`);
   }
   map.npcs.forEach((npc, i) => {
-    if (!walkable(npc.x, npc.y)) errors.push(`Neighbor ${i + 1} (column ${npc.x}, row ${npc.y}) must start on a walkable tile.`);
-    if (npc.look >= TOWNSFOLK.length) errors.push(`Neighbor ${i + 1} has look ${npc.look}; looks go from 0 to ${TOWNSFOLK.length - 1}.`);
+    if (!walkable(npc.x, npc.y)) errors.push(`Person ${i + 1} (column ${npc.x}, row ${npc.y}) must start on a walkable tile.`);
+    const looks = npc.role === 'worker' ? WORKERS : TOWNSFOLK;
+    if (npc.look >= looks.length) errors.push(`Person ${i + 1} (${npc.role}) has look ${npc.look}; looks go from 0 to ${looks.length - 1}.`);
+  });
+  map.doors.forEach((door, i) => {
+    if (!reachable(door.x, door.y)) errors.push(`Door ${i + 1} (to "${door.to}", column ${door.x}, row ${door.y}) must be on, or right next to, a walkable tile.`);
   });
   if (!walkable(map.spawn.x, map.spawn.y)) errors.push(`The spawn (column ${map.spawn.x}, row ${map.spawn.y}) must be a walkable tile.`);
 

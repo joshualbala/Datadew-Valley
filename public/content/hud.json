@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_description": "Buttons fixed to the screen during the game (the HUD). Each widget opens a pop-up (popups.json) when clicked and counts toward '/ N read' like a '!' until it is read ('countsTowardCompletion'). Types: 'portrait' = Alex's face and name in the top-left corner; 'name' is the label, 'state' picks the built-in drawing (\"sickly\" after the data center, or \"healthy\"). 'noise' = a speaker button with volume bars in the bottom-left corner; the bars rise as Alex gets within 'range' tiles of 'source' (a tile kind, e.g. \"data-center\"); 'ambientSound' (a sound in audio.json) hums in the background, up to 'ambientVolume' (0–1) right next to the source.",
+  "_description": "Buttons fixed to the screen during the game (the HUD). Each widget opens a pop-up (popups.json) when clicked and counts toward '/ N read' like a '!' until it is read ('countsTowardCompletion'). Types: 'portrait' = Alex's face and name in the top-left corner; 'name' is the label, 'state' picks the built-in drawing (\"sickly\" after the data center, or \"healthy\"). 'noise' = a speaker button with volume bars in the bottom-left corner; the bars rise as Alex gets within 'range' tiles of 'source' (a tile kind, e.g. \"data-center\", or a list of kinds, e.g. the racks inside); 'ambientSound' (a sound in audio.json) hums in the background: 'ambientMinVolume' (0–1) anywhere on the map, rising to 'ambientVolume' right next to the source over 'ambientRange' tiles; 'musicDip' (0–1) = how much the music fades down next to the source.",
   "_usedIn": "Simulation page → the valley (screen corners)",
   "widgets": [
     {
@@ -16,10 +16,17 @@
       "type": "noise",
       "id": "noise-pollution",
       "popup": "noise-pollution",
-      "source": "data-center",
+      "source": [
+        "data-center",
+        "server-rack",
+        "gpu-rack"
+      ],
       "range": 20,
       "ambientSound": "datacenter",
-      "ambientVolume": 0.35
+      "ambientVolume": 0.45,
+      "ambientMinVolume": 0.06,
+      "ambientRange": 45,
+      "musicDip": 0.55
     }
   ]
 }

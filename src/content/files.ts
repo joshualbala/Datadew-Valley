@@ -33,6 +33,8 @@ export const contentCollections = {
     dir: 'maps',
     schema: MapSchema,
     names: (files: { flow: FlowContent }) => files.flow.steps.flatMap((step) => (step.type === 'map' ? [step.map] : [])),
+    /** Maps reached through a door are loaded too. */
+    refs: (map: { doors: { to: string }[] }) => map.doors.map((d) => d.to),
   },
 } as const;
 

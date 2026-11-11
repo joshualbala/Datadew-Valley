@@ -40,4 +40,8 @@ Vite + TypeScript + Phaser 3.90 (not Phaser 4), Zod 4 for content validation, Vi
 
 **Add a synthesized sound:** generator in `src/game/audio/recordings/` → register in `recordings/index.ts` → `"synth": "<name>"` under `sounds` in `audio.json`; play with `audio.sound(key, def)` (loop handle) or `audio.sfx(name)` for short effects (`src/game/audio/sfx.ts`).
 
+**Townspeople:** `src/game/map/npcs.ts` routes neighbors with `findPath` (`src/game/map/path.ts`) using `WALK_COST` per ground; a tile kind's `npc` role (`home` / `visit` / `linger`) and `door` column make it a destination. New building kinds just need those two fields.
+
+**Add a map / door:** create `public/content/maps/<name>.json` and add a `doors` entry pointing to it from an existing map; the loader follows doors, so no registry change is needed. Interior tile kinds (floor, wall, racks…) are in `kinds.ts`; equipment can blink via a kind's `leds`.
+
 **Add music:** either drop an mp3/ogg in `public/assets/audio/` and add a track with `"file": "assets/audio/x.mp3"` in `audio.json`, or write a synth song in `src/game/audio/songs/<name>.ts` (see `meadow.ts`), register it in `songs/index.ts`, and use `"synth": "<name>"`. Play it from a scene with `audio.playMusic('<trackKey>', getContent().audio.music.<trackKey>)`.

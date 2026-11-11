@@ -18,11 +18,13 @@ import {
 } from './common';
 
 const GROUND = 124;
-const BACK_X = 268; // second hall, further back
-const BACK_Y = 116;
-const FRONT_X = 150;
-const FRONT_Y = 140;
+/** The one data center: drawn 1.5× bigger than the map/title version (3 screen px per art px), left edge and ground line. */
+const DC_SCALE = 1.5;
+const DC_X = 196;
+const DC_Y = 146;
 const TOWER_X = 92;
+/** Dusk tint for the data center sprite (it is added on top of the painted dusk wash). */
+const DUSK_TINT = 0xc4b8d2;
 
 const DUSK_SKY = [0x2b1d4a, 0x3a2558, 0x4f2d63, 0x6b3767, 0x8a4467, 0xa85563, 0xc66b5e, 0xe08a5c, 0xf0a865, 0xf6c47a];
 const LED = [0x5cff8a, 0x5cff8a, 0x5cc8ff, 0xffd25c];
@@ -60,13 +62,9 @@ export const dataCenterOpens: Illustration = {
       for (let x = 0; x <= ax; x++) p.px(ax - x, Math.round(ay + 6 * Math.sin((x / ax) * Math.PI) + (x / ax) * 10), 0x2a2a38, 0.8);
     }
 
-    // Two halls: one further back, one in front.
-    dataCenter(p, BACK_X, BACK_Y);
-    dataCenter(p, FRONT_X, FRONT_Y);
-
-    // Cleared ground: stumps, one lonely pine.
-    for (const [x, y] of [[300, 148], [330, 152], [116, 146], [404, 140], [130, 158]]) stump(p, x, y);
-    pine(p.at(396, GROUND - 46));
+    // Cleared ground: stumps, one lonely pine. (The data center itself is a sprite, see animate.)
+    for (const [x, y] of [[160, 150], [410, 156], [116, 146], [176, 160], [130, 158]]) stump(p, x, y);
+    pine(p.at(150, GROUND - 48));
 
     // Alex's cottage, closer than anyone would want.
     cottage(p, 20, GROUND + 18, true);
@@ -84,7 +82,13 @@ export const dataCenterOpens: Illustration = {
       stage.scene.tweens.add({ targets: star, alpha: 0.2, duration: rand(700, 1400), yoyo: true, repeat: -1, delay: rand(0, 2000) });
     }
 
-    for (const [x, y] of [[BACK_X, BACK_Y], [FRONT_X, FRONT_Y]]) lightUp(stage, x, y);
+    // The data center: same drawing as on the title screen and map, half again as big.
+    const tex = 'illu-data-center';
+    stage
+      .sprite(tex, 148, 84, (p) => dataCenter(p, 10, 78), DC_X - 10 * DC_SCALE, DC_Y - 78 * DC_SCALE)
+      .setScale(DC_SCALE)
+      .setTint(DUSK_TINT);
+    lightUp(stage, DC_X, DC_Y, DC_SCALE);
 
     // Red warning light on the tower.
     const warn = stage.sprite('illu-warn', 2, 2, (p) => p.rect(0, 0, 2, 2, 0xff4b4b), TOWER_X - 1, 38);
@@ -92,41 +96,46 @@ export const dataCenterOpens: Illustration = {
   },
 };
 
-/** Blinking LEDs, glowing doors and steam on one data center hall (x = left edge, y = ground; matches buildings.dataCenter). */
-function lightUp(stage: IllustrationStage, x: number, y: number): void {
-  const top = y - 46;
+/**
+ * Blinking LEDs, glowing doors, logo, floodlights and steam on a data center
+ * hall drawn at `scale` (x = left edge, y = ground; offsets match buildings.dataCenter).
+ */
+function lightUp(stage: IllustrationStage, x: number, y: number, scale: number): void {
+  /** Place a sprite at an offset from the hall's left edge (dx) and ground line (dy), scaled with it. */
+  const at = (key: string, w: number, h: number, draw: (p: PixelPainter) => void, dx: number, dy: number) =>
+    stage.sprite(key, w, h, draw, x + dx * scale, y + dy * scale).setScale(scale);
+  const top = -46;
   for (let i = 0; i < 10; i++) {
     for (const row of [28, 31]) {
       const color = LED[rand(0, LED.length - 1)];
-      const led = stage.sprite(`illu-led-${color.toString(16)}`, 2, 1, (p) => p.rect(0, 0, 2, 1, color), x + 78 + i * 4, top + row);
+      const led = at(`illu-led-${color.toString(16)}`, 2, 1, (p) => p.rect(0, 0, 2, 1, color), 78 + i * 4, top + row);
       stage.every(rand(250, 1100), () => led.setAlpha(led.alpha > 0.5 ? 0.25 : 1));
     }
   }
   // Glowing glass doors and logo panel.
-  stage.sprite('illu-dc-door', 20, 20, (p: PixelPainter) => p.rect(0, 0, 9, 20, 0xbfe9ff, 0.8).rect(11, 0, 9, 20, 0xbfe9ff, 0.8), x + 13, top + 26);
-  const logo = stage.sprite('illu-dc-logo', 18, 12, (p: PixelPainter) => {
+  at('illu-dc-door', 20, 20, (p) => p.rect(0, 0, 9, 20, 0xbfe9ff, 0.8).rect(11, 0, 9, 20, 0xbfe9ff, 0.8), 13, top + 26);
+  const logo = at('illu-dc-logo', 18, 12, (p) => {
     p.rect(0, 0, 18, 12, 0x3d8bff).disc(7, 7, 2, 0xffffff).disc(10, 6, 3, 0xffffff).rect(5, 7, 9, 2, 0xffffff);
-  }, x + 46, top + 24);
+  }, 46, top + 24);
   stage.scene.tweens.add({ targets: logo, alpha: 0.75, duration: 1500, yoyo: true, repeat: -1 });
   // Floodlight cones on the fence.
-  for (const fx of [x - 8, x + 128 + 4]) {
-    const cone = stage.sprite('illu-flood', 12, 14, (p: PixelPainter) => {
+  for (const fx of [-8, 128 + 4]) {
+    const cone = at('illu-flood', 12, 14, (p) => {
       for (let i = 0; i < 14; i++) p.rect(6 - Math.floor(i / 2.5), i, 1 + Math.floor(i / 2.5) * 2, 1, 0xfff2b0, 0.35);
       p.rect(4, 0, 4, 2, 0xfff2b0);
-    }, fx - 5, y - 16);
+    }, fx - 5, -16);
     cone.setAlpha(0.9);
   }
   // Steam from the stacks.
-  const stacks = [x + 128 - 26 + 4, x + 128 - 14 + 4];
+  const stacks = [128 - 26 + 4, 128 - 14 + 4];
   stage.every(500, () => {
-    const sx = stacks[rand(0, 1)];
-    const puff = stage.sprite('illu-steam', 6, 6, (p: PixelPainter) => p.disc(3, 3, 2, 0xd8d4e8), sx - 3, top - 34);
+    const puff = at('illu-steam', 6, 6, (p) => p.disc(3, 3, 2, 0xd8d4e8), stacks[rand(0, 1)] - 3, top - 34);
     puff.setAlpha(0.8);
     stage.scene.tweens.add({
       targets: puff,
-      y: puff.y - stage.px(rand(16, 28)),
-      x: puff.x + stage.px(rand(4, 12)),
-      scale: 2.4,
+      y: puff.y - stage.px(rand(16, 28) * scale),
+      x: puff.x + stage.px(rand(4, 12) * scale),
+      scale: 2.4 * scale,
       alpha: 0,
       duration: 3200,
       onComplete: () => puff.destroy(),

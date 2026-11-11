@@ -39,7 +39,16 @@ export function serverRack(p: PixelPainter): void {
   // Handle.
   p.rect(13, 16, 1, 6, 0x8a8f99);
 }
-export const LEDS_RACK: [number, number][] = [[4, 7], [7, 7], [4, 13], [9, 13], [6, 19], [4, 25], [10, 25], [7, 31]];
+export const LEDS_RACK: [number, number][] = [
+  [4, 7],
+  [7, 7],
+  [4, 13],
+  [9, 13],
+  [6, 19],
+  [4, 25],
+  [10, 25],
+  [7, 31],
+];
 
 /** GPU rack (16×40): like a server rack, with green-lit GPU trays and fans. */
 export function gpuRack(p: PixelPainter): void {
@@ -49,7 +58,14 @@ export function gpuRack(p: PixelPainter): void {
     p.disc(6, y + 2, 1, 0x3a4a30).disc(10, y + 2, 1, 0x3a4a30);
   }
 }
-export const LEDS_GPU: [number, number][] = [[3, 8], [12, 8], [3, 14], [12, 20], [3, 26], [12, 32]];
+export const LEDS_GPU: [number, number][] = [
+  [3, 8],
+  [12, 8],
+  [3, 14],
+  [12, 20],
+  [3, 26],
+  [12, 32],
+];
 
 // ------------------------------------------------------------------ cooling and water
 
@@ -68,7 +84,10 @@ export function coolingUnit(p: PixelPainter): void {
   const s = 0x3d8bff;
   p.rect(23, 30, 1, 9, s).rect(19, 34, 9, 1, s).px(21, 32, s).px(25, 32, s).px(21, 36, s).px(25, 36, s);
 }
-export const LEDS_COOLING: [number, number][] = [[14, 33], [14, 35]];
+export const LEDS_COOLING: [number, number][] = [
+  [14, 33],
+  [14, 35],
+];
 
 /** Municipal water tank (32×46, footprint 2×2): blue tank, bands, gauge, water-drop sign, inlet pipe. */
 export function waterTank(p: PixelPainter): void {
@@ -100,7 +119,12 @@ export function powerCabinet(p: PixelPainter): void {
   // Hazard stripes at the bottom.
   for (let x = 0; x < 16; x += 4) p.rect(x, 33, 2, 4, HAZARD).rect(x + 2, 33, 2, 4, 0x111316);
 }
-export const LEDS_POWER: [number, number][] = [[3, 25], [6, 25], [9, 25], [12, 25]];
+export const LEDS_POWER: [number, number][] = [
+  [3, 25],
+  [6, 25],
+  [9, 25],
+  [12, 25],
+];
 
 /** Transformer (32×40, footprint 2×2): finned box, high-voltage sign, thick cables. */
 export function transformer(p: PixelPainter): void {
@@ -142,11 +166,17 @@ export function upsCabinet(p: PixelPainter): void {
   p.rect(0, 0, 16, 40, 0x2f4a3a).rect(0, 0, 16, 2, 0x4a6b56).rect(14, 0, 2, 40, 0x223529).rect(0, 38, 16, 2, 0x18241d);
   for (let y = 6; y < 34; y += 7) {
     // A battery symbol with a charge bar.
-    p.rect(3, y, 9, 5, 0x18241d).rect(12, y + 1, 1, 3, 0x18241d).rect(4, y + 1, 7, 3, 0x3a3f46);
+    p.rect(3, y, 9, 5, 0x18241d)
+      .rect(12, y + 1, 1, 3, 0x18241d)
+      .rect(4, y + 1, 7, 3, 0x3a3f46);
     p.rect(4, y + 1, 2 + ((y * 7) % 5), 3, 0x5cff8a);
   }
 }
-export const LEDS_UPS: [number, number][] = [[2, 3], [5, 3], [8, 3]];
+export const LEDS_UPS: [number, number][] = [
+  [2, 3],
+  [5, 3],
+  [8, 3],
+];
 
 /** Storage shelf (16×40): metal shelving with spare drives and boxed parts. */
 export function storageShelf(p: PixelPainter): void {
@@ -172,7 +202,9 @@ export function serverCart(p: PixelPainter): void {
 /** Stacked hardware crates (16×18). */
 export function crates(p: PixelPainter): void {
   const box = (x: number, y: number, w: number, h: number) => {
-    p.rect(x, y, w, h, 0xc2955a).rect(x, y, w, 1, 0xd9b07a).rect(x + w - 1, y, 1, h, 0xa87a44);
+    p.rect(x, y, w, h, 0xc2955a)
+      .rect(x, y, w, 1, 0xd9b07a)
+      .rect(x + w - 1, y, 1, h, 0xa87a44);
     p.rect(x + Math.floor(w / 2) - 1, y, 2, h, 0xe0c48e, 0.7); // tape
   };
   box(1, 8, 8, 10);

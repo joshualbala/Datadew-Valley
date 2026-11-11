@@ -66,11 +66,12 @@ export class HotspotMarkers {
       this.markers.push(marker);
     }
 
-    const label = scene.add
-      .text(0, 0, getContent().ui.map.interactHint, { fontFamily: FONT, fontSize: '24px', color: INK })
-      .setOrigin(0.5);
+    const label = scene.add.text(0, 0, getContent().ui.map.interactHint, { fontFamily: FONT, fontSize: '24px', color: INK }).setOrigin(0.5);
     const bg = scene.add.rectangle(0, 0, label.width + 18, label.height + 4, PARCHMENT).setStrokeStyle(3, WOOD_DARK);
-    this.hint = scene.add.container(0, 0, [bg, label]).setDepth(MARKER_DEPTH + 1).setVisible(false);
+    this.hint = scene.add
+      .container(0, 0, [bg, label])
+      .setDepth(MARKER_DEPTH + 1)
+      .setVisible(false);
 
     scene.input.keyboard?.on('keydown-E', () => {
       if (this.near && !isPopupOpen()) this.read(this.near);
@@ -129,36 +130,57 @@ export class HotspotMarkers {
   private makeGlow(spot: Hotspot, tiles: { x: number; y: number }[], grid: ParsedMap): Phaser.GameObjects.Image {
     const color = Number.parseInt(spot.highlightColor.slice(1), 16);
     const inArea = (x: number, y: number) => grid.kindAt(x, y) === spot.area;
-    const key = makeTexture(this.scene, `glow-${spot.id}`, grid.w * TILE, grid.h * TILE, (p) => {
-      for (const t of tiles) {
-        const ox = t.x * TILE;
-        const oy = t.y * TILE;
-        p.rect(ox, oy, TILE, TILE, color, 0.22);
-        if (!inArea(t.x, t.y - 1)) p.rect(ox, oy, TILE, 2, color, 0.85);
-        if (!inArea(t.x, t.y + 1)) p.rect(ox, oy + TILE - 2, TILE, 2, color, 0.85);
-        if (!inArea(t.x - 1, t.y)) p.rect(ox, oy, 2, TILE, color, 0.85);
-        if (!inArea(t.x + 1, t.y)) p.rect(ox + TILE - 2, oy, 2, TILE, color, 0.85);
-      }
-    }, MAP_SCALE);
+    const key = makeTexture(
+      this.scene,
+      `glow-${spot.id}`,
+      grid.w * TILE,
+      grid.h * TILE,
+      (p) => {
+        for (const t of tiles) {
+          const ox = t.x * TILE;
+          const oy = t.y * TILE;
+          p.rect(ox, oy, TILE, TILE, color, 0.22);
+          if (!inArea(t.x, t.y - 1)) p.rect(ox, oy, TILE, 2, color, 0.85);
+          if (!inArea(t.x, t.y + 1)) p.rect(ox, oy + TILE - 2, TILE, 2, color, 0.85);
+          if (!inArea(t.x - 1, t.y)) p.rect(ox, oy, 2, TILE, color, 0.85);
+          if (!inArea(t.x + 1, t.y)) p.rect(ox + TILE - 2, oy, 2, TILE, color, 0.85);
+        }
+      },
+      MAP_SCALE,
+    );
     return this.scene.add.image(0, 0, key).setOrigin(0).setDepth(-0.5).setAlpha(0);
   }
 }
 
 function makeIndicatorTextures(scene: Phaser.Scene): void {
   const outline = 0x3a2412;
-  makeTexture(scene, 'marker-bang', 7, 14, (p) => {
-    p.rect(1, 0, 5, 10, outline).rect(1, 11, 5, 3, outline);
-    p.rect(2, 1, 3, 8, 0xffd23f).rect(2, 12, 3, 1, 0xffd23f);
-    p.rect(2, 1, 1, 7, 0xfff2a8).px(4, 8, 0xd9a21b);
-  }, MAP_SCALE);
+  makeTexture(
+    scene,
+    'marker-bang',
+    7,
+    14,
+    (p) => {
+      p.rect(1, 0, 5, 10, outline).rect(1, 11, 5, 3, outline);
+      p.rect(2, 1, 3, 8, 0xffd23f).rect(2, 12, 3, 1, 0xffd23f);
+      p.rect(2, 1, 1, 7, 0xfff2a8).px(4, 8, 0xd9a21b);
+    },
+    MAP_SCALE,
+  );
   // "-$" in red: money owed.
-  makeTexture(scene, 'marker-owe', 15, 14, (p) => {
-    const red = 0xe23b3b;
-    const hi = 0xff8a8a;
-    p.rect(0, 5, 6, 4, outline).rect(1, 6, 4, 2, red); // minus
-    p.rect(7, 2, 8, 10, outline).rect(9, 0, 3, 14, outline); // $ outline
-    p.rect(10, 1, 1, 12, red);
-    p.rect(8, 3, 6, 2, red).rect(8, 5, 2, 1, red).rect(8, 6, 6, 2, red).rect(12, 8, 2, 1, red).rect(8, 9, 6, 2, red);
-    p.px(8, 3, hi).px(9, 6, hi);
-  }, MAP_SCALE);
+  makeTexture(
+    scene,
+    'marker-owe',
+    15,
+    14,
+    (p) => {
+      const red = 0xe23b3b;
+      const hi = 0xff8a8a;
+      p.rect(0, 5, 6, 4, outline).rect(1, 6, 4, 2, red); // minus
+      p.rect(7, 2, 8, 10, outline).rect(9, 0, 3, 14, outline); // $ outline
+      p.rect(10, 1, 1, 12, red);
+      p.rect(8, 3, 6, 2, red).rect(8, 5, 2, 1, red).rect(8, 6, 6, 2, red).rect(12, 8, 2, 1, red).rect(8, 9, 6, 2, red);
+      p.px(8, 3, hi).px(9, 6, hi);
+    },
+    MAP_SCALE,
+  );
 }

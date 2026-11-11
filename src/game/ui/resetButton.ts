@@ -18,22 +18,58 @@ const CONFIRM_MS = 3000;
  */
 export function addResetButton(scene: Phaser.Scene, depth: number): Phaser.GameObjects.Container {
   const text = getContent().ui.reset;
-  makeTexture(scene, 'icon-reset', 14, 14, (p) => {
-    // A circular arrow.
-    for (const [x, y] of [[5, 1], [6, 1], [7, 1], [8, 1], [3, 2], [4, 2], [9, 2], [10, 2], [2, 3], [11, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [2, 9], [12, 8], [12, 9], [3, 10], [11, 10], [4, 11], [5, 11], [10, 11], [6, 12], [7, 12], [8, 12], [9, 12]]) {
-      p.px(x, y, CREAM);
-    }
-    p.rect(10, 4, 4, 1, CREAM).rect(13, 4, 1, 4, CREAM).px(12, 5, CREAM).px(11, 6, CREAM).rect(12, 4, 1, 3, CREAM);
-  }, 3);
+  makeTexture(
+    scene,
+    'icon-reset-v2',
+    14,
+    14,
+    (p) => {
+      // A ring with a gap at the top right...
+      const c = 7;
+      for (let y = 0; y < 14; y++) {
+        for (let x = 0; x < 14; x++) {
+          const dx = x + 0.5 - c;
+          const dy = y + 0.5 - c;
+          const d = Math.hypot(dx, dy);
+          const angle = (Math.atan2(dy, dx) * 180) / Math.PI; // 0 = right, -90 = up
+          if (d >= 3.6 && d <= 5.5 && !(angle > -88 && angle < 5)) p.px(x, y, CREAM);
+        }
+      }
+      // ...and an arrowhead at its top end, pointing clockwise.
+      for (const [y, x0, x1] of [
+        [0, 7, 7],
+        [1, 7, 8],
+        [2, 7, 9],
+        [3, 7, 10],
+        [4, 7, 9],
+        [5, 7, 8],
+        [6, 7, 7],
+      ]) {
+        p.rect(x0, y, x1 - x0 + 1, 1, CREAM);
+      }
+    },
+    3,
+  );
 
-  const bg = scene.add.rectangle(0, 0, 56, 50, DARK, 0.6).setStrokeStyle(3, DARK);
-  const icon = scene.add.image(0, 0, 'icon-reset');
-  const button = scene.add.container(GAME_WIDTH - 104, 36, [bg, icon]).setDepth(depth).setSize(56, 50).setScrollFactor(0);
+  const bg = scene.add.rectangle(0, 0, 38, 34, DARK, 0.6).setStrokeStyle(2, DARK);
+  const icon = scene.add.image(0, 0, 'icon-reset-v2').setScale(2 / 3); // 2 screen px per art px
+  const button = scene.add
+    .container(GAME_WIDTH - 72, 26, [bg, icon])
+    .setDepth(depth)
+    .setSize(38, 34)
+    .setScrollFactor(0);
   button.setInteractive({ useHandCursor: true });
 
   const tipText = scene.add.text(0, 0, text.confirm, { fontFamily: FONT, fontSize: '22px', color: INK }).setOrigin(1, 0);
-  const tipBg = scene.add.rectangle(4, -2, tipText.width + 16, tipText.height + 4, PARCHMENT).setOrigin(1, 0).setStrokeStyle(3, WOOD_DARK);
-  const tip = scene.add.container(GAME_WIDTH - 76, 66, [tipBg, tipText]).setDepth(depth).setScrollFactor(0).setVisible(false);
+  const tipBg = scene.add
+    .rectangle(4, -2, tipText.width + 16, tipText.height + 4, PARCHMENT)
+    .setOrigin(1, 0)
+    .setStrokeStyle(3, WOOD_DARK);
+  const tip = scene.add
+    .container(GAME_WIDTH - 10, 50, [tipBg, tipText])
+    .setDepth(depth)
+    .setScrollFactor(0)
+    .setVisible(false);
 
   let armed = false;
   let timer: Phaser.Time.TimerEvent | null = null;

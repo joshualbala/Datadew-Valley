@@ -15,6 +15,10 @@ Fields starting with `_` are notes for the team and never appear in the game.
 | `ui.json` → `sequence` | "Click or press Enter to continue" hint and the Back button label | Intro slides (caption box) |
 | `flow.json` | The order of screens after Enter: which slideshow plays, then the black "6 months later" card (its text and how many seconds it stays) | Everything between the title and the game |
 | `sequences/intro.json` | The intro slides: each slide's caption and which picture it shows. Add, remove or reorder slides here. The pictures are drawn in code; the file's `_description` lists the available names | Intro slides |
+| `site.json` | The website: site name, header links, each page and its sections, the "please use a computer" notice | Header, every page |
+| `about.json` | The team on the About Us page: name, role, photo (or a pixel avatar), short bio | About Us |
+| `bibliography.json` | Annotated Bibliography entries (empty by default: the page then says so) | Annotated Bibliography |
+| `sequences/ending.json` | The ending slides (captions and pictures), shown once all 10 pop-ups are read | Ending |
 | `ui.json` → `reset` | The note shown after the first click on the Reset button (top-right in the game) | Game screen |
 | `ui.json` → `popup`, `map` | The pop-up "Continue" label, the "Press E" hint and the "x / N read" counter text | Pop-ups, game map |
 | `popups.json` | Every pop-up window: title, body blocks (text, big numbers, citations, pictures, key caps) and button label. The file's `_description` lists the block types | Controls pop-up, every "!" |
@@ -41,4 +45,13 @@ Fields starting with `_` are notes for the team and never appear in the game.
 - **Make the valley more or less gloomy:** `maps/valley.json` → `effects` (desaturate amount, smog radius and strength, cloud shadows) and `dryness` (how far the grass dries out around the data center).
 - **Change "6 months later":** edit the `card` step's `text` and `holdSeconds` in `flow.json`.
 
-More files are added as later steps are built (pop-ups, HUD, About, Bibliography).
+
+- **Add a person to About Us:** copy an entry in `about.json`. For a photo, put the file in `public/assets/team/` and set `"image": "assets/team/name.jpg"` (leave `""` for a pixel avatar).
+- **Add a bibliography entry:** add `{ "citation": "...", "annotation": "...", "url": "..." }` to `entries` in `bibliography.json`.
+- **Add a website page:** add it to `site.json` → `pages` (a title and a list of sections) and a link to `nav`.
+- **Change the ending:** edit `sequences/ending.json`; the "Thank you" card is the last step in `flow.json`.
+
+## For facilitators
+- **Reset:** the circular-arrow button in the game's top-right corner (click twice) clears progress and returns to the title. Finishing the ending also clears progress.
+- **Debug view:** open the site with `?debug=1` (e.g. `…/index.html?debug=1#/simulation`) to see hotspot ids, doors, people and Alex's tile on the map.
+- **Phones and small windows** see a "please use a computer" notice instead of the game.

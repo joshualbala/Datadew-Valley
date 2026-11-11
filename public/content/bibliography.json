@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "_description": "Entries on the Annotated Bibliography page, in order. Empty by default (the page then shows the 'emptyMessage' from site.json). Each entry: 'citation' (the full reference), 'annotation' (a short note on what it says and why it matters), 'url' (optional link). Example: {\"citation\": \"Author, A. (2024). Title. Journal.\", \"annotation\": \"...\", \"url\": \"https://...\"}",
+  "_usedIn": "Annotated Bibliography page",
+  "entries": []
+}

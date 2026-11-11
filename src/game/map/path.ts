@@ -55,7 +55,12 @@ export function findPath(grid: PathGrid, from: { x: number; y: number }, to: { x
     if (d > dist[i]) continue;
     const x = i % grid.w;
     const y = (i - x) / grid.w;
-    for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]]) {
+    for (const [nx, ny] of [
+      [x + 1, y],
+      [x - 1, y],
+      [x, y + 1],
+      [x, y - 1],
+    ]) {
       if (nx < 0 || ny < 0 || nx >= grid.w || ny >= grid.h) continue;
       const step = grid.cost(nx, ny);
       if (!Number.isFinite(step)) continue;

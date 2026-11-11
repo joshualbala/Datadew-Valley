@@ -38,10 +38,24 @@ const COUNCIL: Look = { hair: 0x2b1d14, skin: 0xc68642, shirt: 0x2f3e5c, pants: 
  * back row so no one stands next to (or in front of) their twin.
  */
 const CROWD: { x: number; row: number; look: number }[] = [
-  { x: 6, row: 1, look: 0 }, { x: 30, row: 1, look: 1 }, { x: 54, row: 1, look: 2 }, { x: 80, row: 1, look: 3 }, { x: 103, row: 1, look: 4 },
-  { x: 166, row: 1, look: 5 }, { x: 190, row: 1, look: 6 }, { x: 214, row: 1, look: 7 }, { x: 240, row: 1, look: 8 }, { x: 263, row: 1, look: 9 },
-  { x: 18, row: 0, look: 5 }, { x: 42, row: 0, look: 6 }, { x: 66, row: 0, look: 7 }, { x: 92, row: 0, look: -1 },
-  { x: 178, row: 0, look: 8 }, { x: 202, row: 0, look: 9 }, { x: 226, row: 0, look: 0 }, { x: 251, row: 0, look: 1 },
+  { x: 6, row: 1, look: 0 },
+  { x: 30, row: 1, look: 1 },
+  { x: 54, row: 1, look: 2 },
+  { x: 80, row: 1, look: 3 },
+  { x: 103, row: 1, look: 4 },
+  { x: 166, row: 1, look: 5 },
+  { x: 190, row: 1, look: 6 },
+  { x: 214, row: 1, look: 7 },
+  { x: 240, row: 1, look: 8 },
+  { x: 263, row: 1, look: 9 },
+  { x: 18, row: 0, look: 5 },
+  { x: 42, row: 0, look: 6 },
+  { x: 66, row: 0, look: 7 },
+  { x: 92, row: 0, look: -1 },
+  { x: 178, row: 0, look: 8 },
+  { x: 202, row: 0, look: 9 },
+  { x: 226, row: 0, look: 0 },
+  { x: 251, row: 0, look: 1 },
 ];
 
 /** Top of a crowd row's sprites (row 1 = back, row 0 = front). */
@@ -86,7 +100,14 @@ export const townMeeting: Illustration = {
     const speaker = stage.sprite('illu-council-point', POINT_W, PERSON_H, (p) => person(p, COUNCIL, 'point'), MID - 5, speakerTop);
     stage.scene.tweens.add({ targets: speaker, y: speaker.y - stage.px(1), duration: 600, yoyo: true, repeat: -1 });
     // Podium in front of the speaker (added after, so it covers their legs).
-    stage.sprite('illu-podium', 14, 13, (p) => p.rect(1, 1, 12, 12, 0x8a5a2b).rect(0, 0, 14, 2, 0x6b4423).rect(5, 5, 4, 3, C.gold), MID - 7, GROUND - 14);
+    stage.sprite(
+      'illu-podium',
+      14,
+      13,
+      (p) => p.rect(1, 1, 12, 12, 0x8a5a2b).rect(0, 0, 14, 2, 0x6b4423).rect(5, 5, 4, 3, C.gold),
+      MID - 7,
+      GROUND - 14,
+    );
 
     // The crowd, back row first so the front row overlaps it. Heads bob as people murmur.
     for (const row of [1, 0]) {
@@ -167,7 +188,11 @@ function blueprint(p: PixelPainter, x: number, y: number): void {
   for (let i = 0; i < 6; i++) p.px(bx + 16 + i * 4, by + 12, line); // server lights
   // Fence (dashed) and dimension line.
   for (let fx = x + 4; fx < x + w - 4; fx += 3) p.px(fx, y + h - 6, line);
-  p.rect(bx, y + h - 3, 40, 1, line).px(bx, y + h - 4, line).px(bx + 39, y + h - 4, line);
+  p.rect(bx, y + h - 3, 40, 1, line)
+    .px(bx, y + h - 4, line)
+    .px(bx + 39, y + h - 4, line);
   // Title block in the corner.
-  p.frame(x + w - 14, y + 3, 11, 9, line).rect(x + w - 12, y + 5, 7, 1, line).rect(x + w - 12, y + 8, 5, 1, line);
+  p.frame(x + w - 14, y + 3, 11, 9, line)
+    .rect(x + w - 12, y + 5, 7, 1, line)
+    .rect(x + w - 12, y + 8, 5, 1, line);
 }

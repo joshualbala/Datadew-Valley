@@ -66,12 +66,16 @@ export const valleyHome: Illustration = {
       const ry = 84 + row * 7;
       p.rect(gx, ry, 52, 3, 0x7a5232).rect(gx, ry + 3, 52, 1, 0x5e3e24);
       for (let i = 0; i < 9; i++) {
-        p.px(gx + 2 + i * 6, ry - 1, C.leafLight).px(gx + 3 + i * 6, ry - 2, C.leaf).px(gx + 1 + i * 6, ry - 1, C.leaf);
+        p.px(gx + 2 + i * 6, ry - 1, C.leafLight)
+          .px(gx + 3 + i * 6, ry - 2, C.leaf)
+          .px(gx + 1 + i * 6, ry - 1, C.leaf);
         if (row === 1 && i % 3 === 0) p.px(gx + 2 + i * 6, ry, 0xe0483e); // tomatoes
       }
     }
     for (const sx of [YARD_RIGHT - 8, YARD_RIGHT - 14]) {
-      p.rect(sx, 72, 1, 20, C.tuft).px(sx + 1, 82, C.leaf).px(sx - 1, 86, C.leaf);
+      p.rect(sx, 72, 1, 20, C.tuft)
+        .px(sx + 1, 82, C.leaf)
+        .px(sx - 1, 86, C.leaf);
       p.disc(sx, 70, 3, 0xffd23f).disc(sx, 70, 1, 0x7a4a24);
     }
 
@@ -114,23 +118,59 @@ export const valleyHome: Illustration = {
     });
 
     // Drifting clouds.
-    for (const [x, y, ms] of [[30, 10, 60000], [140, 26, 80000]] as const) {
-      const cloud = stage.sprite('illu-cloud', 36, 12, (p) => {
-        p.disc(9, 7, 5, C.cloud).disc(18, 5, 6, C.cloud).disc(27, 7, 5, C.cloud).rect(4, 8, 28, 4, C.cloud).rect(5, 10, 26, 2, C.cloudShade);
-      }, x, y);
+    for (const [x, y, ms] of [
+      [30, 10, 60000],
+      [140, 26, 80000],
+    ] as const) {
+      const cloud = stage.sprite(
+        'illu-cloud',
+        36,
+        12,
+        (p) => {
+          p.disc(9, 7, 5, C.cloud)
+            .disc(18, 5, 6, C.cloud)
+            .disc(27, 7, 5, C.cloud)
+            .rect(4, 8, 28, 4, C.cloud)
+            .rect(5, 10, 26, 2, C.cloudShade);
+        },
+        x,
+        y,
+      );
       driftAcross(stage, cloud, ms, area);
     }
 
     // Sparkles on the water.
     for (let i = 0; i < 8; i++) {
       const x = rand(4, area.w - 4);
-      const s = stage.sprite('illu-sparkle', 3, 3, (p) => p.px(1, 0, 0xffffff).rect(0, 1, 3, 1, 0xffffff).px(1, 2, 0xffffff), x, riverLine(x) + rand(-2, 1));
+      const s = stage.sprite(
+        'illu-sparkle',
+        3,
+        3,
+        (p) => p.px(1, 0, 0xffffff).rect(0, 1, 3, 1, 0xffffff).px(1, 2, 0xffffff),
+        x,
+        riverLine(x) + rand(-2, 1),
+      );
       s.setAlpha(0);
-      stage.scene.tweens.add({ targets: s, alpha: 0.9, duration: 450, yoyo: true, repeat: -1, delay: rand(0, 3000), repeatDelay: rand(1200, 3500) });
+      stage.scene.tweens.add({
+        targets: s,
+        alpha: 0.9,
+        duration: 450,
+        yoyo: true,
+        repeat: -1,
+        delay: rand(0, 3000),
+        repeatDelay: rand(1200, 3500),
+      });
     }
 
     // A butterfly over the garden.
-    const b = stage.sprite('illu-butterfly', 5, 3, (p) => p.rect(0, 0, 2, 2, 0xff9ad5).rect(3, 0, 2, 2, 0xff9ad5).px(2, 1, 0x3a2a1a), COTTAGE_X + COTTAGE_W + 14, 76);
+    const b = stage.sprite(
+      'illu-butterfly',
+      5,
+      3,
+      (p) => p.rect(0, 0, 2, 2, 0xff9ad5).rect(3, 0, 2, 2, 0xff9ad5).px(2, 1, 0x3a2a1a),
+      COTTAGE_X + COTTAGE_W + 14,
+      76,
+    );
     stage.scene.tweens.add({ targets: b, x: b.x + stage.px(36), duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     stage.scene.tweens.add({ targets: b, y: b.y - stage.px(5), duration: 700, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
   },

@@ -58,15 +58,29 @@ export const construction: Illustration = {
     for (let i = 0; i < 260; i++) p.px(rng.between(SITE_X, IW), rng.between(GROUND + 1, ROAD_Y - 1), rng.pick([DIRT_DARK, DIRT_LIGHT]));
     for (let x = SITE_X + 10; x < IW; x += 3) p.px(x, GROUND + 18, DIRT_DARK).px(x + 1, GROUND + 22, DIRT_DARK);
     // Dirt piles.
-    for (const [x, r] of [[176, 7], [212, 5]]) p.halfDisc(x, GROUND + 14, r, DIRT_DARK).halfDisc(x - 1, GROUND + 13, r - 2, DIRT_LIGHT);
+    for (const [x, r] of [
+      [176, 7],
+      [212, 5],
+    ])
+      p.halfDisc(x, GROUND + 14, r, DIRT_DARK).halfDisc(x - 1, GROUND + 13, r - 2, DIRT_LIGHT);
 
     // Stumps where trees stood, plus a stack of felled logs.
-    for (const [x, y] of [[160, 126], [188, 140], [232, 128], [372, 140], [404, 130], [338, 142]]) stump(p, x, y);
+    for (const [x, y] of [
+      [160, 126],
+      [188, 140],
+      [232, 128],
+      [372, 140],
+      [404, 130],
+      [338, 142],
+    ])
+      stump(p, x, y);
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3 - i; j++) {
         const lx = 352 + j * 8 + i * 4;
         const ly = GROUND + 12 - i * 4;
-        p.rect(lx, ly, 8, 4, C.trunk).disc(lx + 7, ly + 2, 2, 0xd9b47a).px(lx + 7, ly + 2, 0xb8956a);
+        p.rect(lx, ly, 8, 4, C.trunk)
+          .disc(lx + 7, ly + 2, 2, 0xd9b47a)
+          .px(lx + 7, ly + 2, 0xb8956a);
       }
     }
     // The last few trees at the edge.
@@ -97,12 +111,16 @@ export const construction: Illustration = {
     p.rect(CRANE_X + 2, 4, 1, 10, YELLOW_DARK).px(CRANE_X + 2, 3, 0xd9534f);
 
     // Gravel road between the site and the river.
-    p.rect(0, ROAD_Y, IW, 8, 0xa89e8c).rect(0, ROAD_Y, IW, 1, 0x8c8272).rect(0, ROAD_Y + 7, IW, 1, 0x8c8272);
+    p.rect(0, ROAD_Y, IW, 8, 0xa89e8c)
+      .rect(0, ROAD_Y, IW, 1, 0x8c8272)
+      .rect(0, ROAD_Y + 7, IW, 1, 0x8c8272);
     for (let i = 0; i < 120; i++) p.px(rng.between(0, IW), rng.between(ROAD_Y + 1, ROAD_Y + 6), rng.pick([0x8c8272, 0xc2b8a5]));
 
     // Orange-and-white barriers along the road.
     for (let x = SITE_X + 6; x < IW - 10; x += 26) {
-      p.rect(x, ROAD_Y - 7, 14, 4, 0xf28c28).rect(x + 4, ROAD_Y - 7, 3, 4, 0xffffff).rect(x + 10, ROAD_Y - 7, 2, 4, 0xffffff);
+      p.rect(x, ROAD_Y - 7, 14, 4, 0xf28c28)
+        .rect(x + 4, ROAD_Y - 7, 3, 4, 0xffffff)
+        .rect(x + 10, ROAD_Y - 7, 2, 4, 0xffffff);
       p.rect(x + 1, ROAD_Y - 3, 1, 3, STEEL_DARK).rect(x + 12, ROAD_Y - 3, 1, 3, STEEL_DARK);
     }
 
@@ -118,9 +136,20 @@ export const construction: Illustration = {
     stage.sprite('illu-alex-upset', PERSON_W, PERSON_H, (p) => person(p, ALEX, 'stand', 'upset'), ax, ay);
 
     // Two thin red "!!" marks popping over Alex's head.
-    const marks = stage.sprite('illu-alarm', 5, 7, (p) => {
-      for (const x of [0, 3]) p.rect(x, 0, 1, 4, 0xff3b3b).px(x, 5, 0xff3b3b).rect(x + 1, 0, 1, 4, 0x8a1010).px(x + 1, 5, 0x8a1010);
-    }, ax + Math.floor(PERSON_W / 2) - 2, ay - 9);
+    const marks = stage.sprite(
+      'illu-alarm',
+      5,
+      7,
+      (p) => {
+        for (const x of [0, 3])
+          p.rect(x, 0, 1, 4, 0xff3b3b)
+            .px(x, 5, 0xff3b3b)
+            .rect(x + 1, 0, 1, 4, 0x8a1010)
+            .px(x + 1, 5, 0x8a1010);
+      },
+      ax + Math.floor(PERSON_W / 2) - 2,
+      ay - 9,
+    );
     stage.scene.tweens.add({ targets: marks, y: marks.y - stage.px(2), duration: 260, yoyo: true, repeat: -1, ease: 'Sine.out' });
     stage.every(1600, () => {
       marks.setVisible(false);
@@ -145,10 +174,17 @@ export const construction: Illustration = {
     });
 
     // Crane hook swinging gently, carrying a steel beam.
-    const hook = stage.sprite('illu-hook', 22, 40, (p) => {
-      p.rect(10, 0, 1, 32, 0x3a3a3a).rect(8, 32, 5, 2, 0x3a3a3a);
-      p.rect(0, 34, 22, 3, STEEL).rect(0, 36, 22, 1, STEEL_DARK);
-    }, 300, 15);
+    const hook = stage.sprite(
+      'illu-hook',
+      22,
+      40,
+      (p) => {
+        p.rect(10, 0, 1, 32, 0x3a3a3a).rect(8, 32, 5, 2, 0x3a3a3a);
+        p.rect(0, 34, 22, 3, STEEL).rect(0, 36, 22, 1, STEEL_DARK);
+      },
+      300,
+      15,
+    );
     stage.scene.tweens.add({ targets: hook, x: hook.x + stage.px(36), duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
 
     // Trucks rumbling past on the road.

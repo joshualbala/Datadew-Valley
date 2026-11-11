@@ -3,21 +3,26 @@
 Educational pixel-art simulation of living next to a data center (Brown HCI research project). Full plan, decisions, and the step list: `plan.md`.
 
 ## Stack
+
 Vite + TypeScript + Phaser 3.90 (not Phaser 4), Zod 4 for content validation, Vitest. No React. Static site for GitHub Pages (`base: './'`).
 
 ## Commands
-- `npm run dev` (dev server) · `npm test` (content + unit tests) · `npm run typecheck` · `npm run build`
+
+- `npm run dev` (dev server) · `npm test` (content + unit tests) · `npm run typecheck` · `npm run lint` · `npm run format` · `npm run build` · `npm run test:e2e` (browser smoke test; run after `build`) · `npm run check` (typecheck + lint + test + build)
+- CI/deploy: `.github/workflows/deploy.yml` runs all checks on every push/PR and deploys `main` to GitHub Pages (one-time: repo Settings → Pages → Source: GitHub Actions).
 
 ## Rules
+
 - **All user-facing text lives in `public/content/*.json`.** Never hard-code copy in TS (the only exception is temporary dev placeholders, marked TEMPORARY).
 - Every content file has `schemaVersion`, `_description` (what it controls + field guide), and `_usedIn` (which page/scene reads it). Entries that appear in the game have `_location`. `_`-prefixed fields are human notes, which Zod strips.
 - Extend through registries, not special cases: content files are registered in `src/content/files.ts`; scenes in `src/game/game.ts`. Engine code should never mention specific content IDs.
 - Scenes import constants from `src/game/constants.ts` (not `game.ts`, which would cause a circular import).
 - Internal resolution is 960×540. Placeholder art uses `PixelPainter` (`src/game/art/pixel.ts`) on a 2px grid (art grid 480×270); bake static scenery into one texture with `makeTexture` instead of redrawing Graphics every frame.
 - All sound goes through the `audio` singleton (`src/game/audio/audioManager.ts`): it unlocks on the first click/keypress (browser rule), handles mute (M key / `addMuteButton`), and plays music tracks defined in `public/content/audio.json`.
-- Work happens in numbered steps (see `plan.md` → Build steps). Finish one step, make sure `npm test`, `npm run typecheck`, and `npm run build` pass, then stop for the user to test and commit.
+- Work happens in numbered steps (see `plan.md` → Build steps). Finish one step, make sure `npm run check` (and `npm run test:e2e` for UI changes) passes, then stop for the user to test and commit.
 
 ## Recipes
+
 **Add a content file:** create `public/content/<name>.json` with the meta fields → add a schema in `src/content/schemas.ts` using `contentFile({...})` → register it in `src/content/files.ts`. It is then loaded at startup (`getContent().<name>`) and checked by `tests/content.test.ts` automatically.
 
 **Add a scene:** create `src/game/scenes/<Name>Scene.ts` → add it to the `scene` list in `src/game/game.ts`.
@@ -43,5 +48,9 @@ Vite + TypeScript + Phaser 3.90 (not Phaser 4), Zod 4 for content validation, Vi
 **Townspeople:** `src/game/map/npcs.ts` routes neighbors with `findPath` (`src/game/map/path.ts`) using `WALK_COST` per ground; a tile kind's `npc` role (`home` / `visit` / `linger`) and `door` column make it a destination. New building kinds just need those two fields.
 
 **Add a map / door:** create `public/content/maps/<name>.json` and add a `doors` entry pointing to it from an existing map; the loader follows doors, so no registry change is needed. Interior tile kinds (floor, wall, racks…) are in `kinds.ts`; equipment can blink via a kind's `leds`.
+
+**Add a website page or section type:** pages are JSON (`public/content/site.json`); a new section type is a schema in `SectionSchema` + a renderer in `src/site/sections.ts`. The router/shell is `src/site/shell.ts` (the game pauses on non-game pages).
+
+**Debug view:** `?debug=1` labels the map (`MapScene.addDebugLabels`). The header's wood texture is painted in code (`src/site/wood.ts`).
 
 **Add music:** either drop an mp3/ogg in `public/assets/audio/` and add a track with `"file": "assets/audio/x.mp3"` in `audio.json`, or write a synth song in `src/game/audio/songs/<name>.ts` (see `meadow.ts`), register it in `songs/index.ts`, and use `"synth": "<name>"`. Play it from a scene with `audio.playMusic('<trackKey>', getContent().audio.music.<trackKey>)`.

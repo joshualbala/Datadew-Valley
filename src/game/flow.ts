@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import type { FlowStep } from '../content/schemas';
 import { getContent } from '../content/store';
+import { progress } from '../state/progress';
 
 type StepOf<T extends FlowStep['type']> = Extract<FlowStep, { type: T }>;
 type StepHandler<T extends FlowStep['type']> = (scene: Phaser.Scene, step: StepOf<T>) => void;
@@ -14,7 +15,7 @@ type StepHandler<T extends FlowStep['type']> = (scene: Phaser.Scene, step: StepO
 const handlers: { [T in FlowStep['type']]: StepHandler<T> } = {
   sequence: (scene, step) => scene.scene.start('Sequence', { sequence: step.sequence }),
   card: (scene, step) => scene.scene.start('Card', step),
-  map: (scene, step) => scene.scene.start('Map', { map: step.map, popup: step.popup }),
+  map: (scene, step) => scene.scene.start('Map', { map: step.map, popup: step.popup, until: step.until }),
 };
 
 let index = -1;
@@ -32,7 +33,8 @@ export const flow = {
     index += 1;
     const step = getContent().flow.steps[index];
     if (!step) {
-      // Nothing left in flow.json: back to the title screen.
+      // The playthrough is over: clear progress so the next person starts fresh, and go back to the title.
+      progress.reset();
       scene.scene.start('Title');
       return;
     }

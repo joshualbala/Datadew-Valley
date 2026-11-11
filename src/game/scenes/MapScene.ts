@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import type { MapContent } from '../../content/schemas';
 import { getContent } from '../../content/store';
 import { showError } from '../../ui/errorBox';
 import { isPopupOpen, openPopup } from '../../ui/popup';
@@ -6,7 +7,9 @@ import { seeded } from '../art/illustrations/common';
 import { makeTexture } from '../art/pixel';
 import { audio } from '../audio/audioManager';
 import { startEffects, type RunningEffect } from '../effects';
-import { addProgressCounter } from '../hud/progressCounter';
+import { addProgressCounter, completionIds } from '../hud/progressCounter';
+import { flow } from '../flow';
+import { progress } from '../../state/progress';
 import { startHud, type RunningWidget } from '../hud/widgets';
 import { parseMap } from '../map/grid';
 import { HotspotMarkers } from '../map/hotspots';
@@ -39,13 +42,17 @@ export class MapScene extends Phaser.Scene {
   /** Where Alex arrives when coming through a door (otherwise the map's spawn). */
   private arriveAt?: { x: number; y: number };
   private leaving = false;
+  /** When this map's flow step ends ("complete" = once everything is read). */
+  private until?: 'complete';
 
   constructor() {
     super('Map');
   }
 
-  init(data: { map: string; popup?: string; spawn?: { x: number; y: number } }): void {
+  init(data: { map: string; popup?: string; spawn?: { x: number; y: number }; until?: 'complete' }): void {
     this.mapName = data.map;
+    // Remembered across doors (going inside and back out keeps the same flow step).
+    if (data.until !== undefined || !data.spawn) this.until = data.until;
     this.introPopup = data.popup;
     this.arriveAt = data.spawn;
     this.leaving = false;
@@ -55,6 +62,47 @@ export class MapScene extends Phaser.Scene {
     this.widgets = [];
     this.townsfolk = undefined;
     this.flowWater = undefined;
+  }
+
+  /**
+   * ?debug=1: label hotspots (id → pop-up), doors (→ map), people (role/look)
+   * and show Alex's tile, so the team can check the JSON against the map.
+   */
+  private addDebugLabels(map: MapContent): void {
+    const label = (x: number, y: number, text: string, color: string) =>
+      this.add
+        .text(x, y, text, { fontFamily: 'monospace', fontSize: '13px', color, backgroundColor: '#000000aa', padding: { x: 3, y: 1 } })
+        .setOrigin(0.5, 1)
+        .setDepth(300000);
+    for (const h of map.hotspots)
+      label((h.x + 0.5) * TILE_PX, h.y * TILE_PX - 34, `${h.id} → ${h.popup}${h.area ? ` [${h.area}]` : ''}`, '#ffd23f');
+    for (const d of map.doors) label((d.x + 0.5) * TILE_PX, d.y * TILE_PX, `door → ${d.to} (${d.spawn.x},${d.spawn.y})`, '#7fd0ff');
+    map.npcs.forEach((n) => label((n.x + 0.5) * TILE_PX, (n.y + 1) * TILE_PX, `${n.role} ${n.look} start`, '#c8f0d4'));
+    const where = this.add
+      .text(480, 528, '', {
+        fontFamily: 'monospace',
+        fontSize: '14px',
+        color: '#ffffff',
+        backgroundColor: '#000000aa',
+        padding: { x: 4, y: 2 },
+      })
+      .setOrigin(0.5, 1)
+      .setScrollFactor(0)
+      .setDepth(300000);
+    this.events.on(Phaser.Scenes.Events.UPDATE, () => {
+      if (!this.player) return;
+      where.setText(`${this.mapName}  tile ${Math.floor(this.player.x / TILE_PX)},${Math.floor((this.player.y - 1) / TILE_PX)}`);
+    });
+  }
+
+  /** Everything is read: a short pause, then on to the next flow step (the ending). */
+  private finish(): void {
+    if (this.leaving) return;
+    this.leaving = true;
+    this.time.delayedCall(1500, () => {
+      this.cameras.main.fadeOut(1200, 0, 0, 0);
+      this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => flow.next(this));
+    });
   }
 
   /** Fade out and load the door's map, arriving at its spawn. */
@@ -124,22 +172,39 @@ export class MapScene extends Phaser.Scene {
       for (const s of drySources) d = Math.min(d, Math.hypot(x + 0.5 - s.x, y + 0.5 - s.y));
       return Phaser.Math.Clamp(1 - d / map.dryness.radius, 0, 1);
     };
-    const groundKey = makeTexture(this, `map-${this.mapName}-ground`, grid.w * TILE, grid.h * TILE, (p) => {
-      const rng = seeded(this.mapName.length * 7919 + grid.w);
-      for (let y = 0; y < grid.h; y++) {
-        for (let x = 0; x < grid.w; x++) {
-          paintGround(p.at(x * TILE, y * TILE), grid.kindAt(x, y), grid.neighborsOf(x, y), rng, dryAt(x, y));
+    const groundKey = makeTexture(
+      this,
+      `map-${this.mapName}-ground`,
+      grid.w * TILE,
+      grid.h * TILE,
+      (p) => {
+        const rng = seeded(this.mapName.length * 7919 + grid.w);
+        for (let y = 0; y < grid.h; y++) {
+          for (let x = 0; x < grid.w; x++) {
+            paintGround(p.at(x * TILE, y * TILE), grid.kindAt(x, y), grid.neighborsOf(x, y), rng, dryAt(x, y));
+          }
         }
-      }
-    }, MAP_SCALE);
+      },
+      MAP_SCALE,
+    );
     this.add.image(0, 0, groundKey).setOrigin(0).setDepth(-1);
 
     // Trees, fences and buildings: sprites sorted by their base so Alex walks behind or in front.
     for (const block of grid.objects) {
       const sprite = kinds[block.kind].object!(grid.neighborsOf(block.x, block.y), block, dryAt(block.x, block.y));
-      const key = makeTexture(this, `tile-${block.kind}${sprite.variant ? `-${sprite.variant}` : ''}`, sprite.w, sprite.h, sprite.draw, MAP_SCALE);
+      const key = makeTexture(
+        this,
+        `tile-${block.kind}${sprite.variant ? `-${sprite.variant}` : ''}`,
+        sprite.w,
+        sprite.h,
+        sprite.draw,
+        MAP_SCALE,
+      );
       const bottom = (block.y + block.h) * TILE_PX + (sprite.sink ?? 0) * MAP_SCALE;
-      this.add.image((block.x + block.w / 2) * TILE_PX, bottom, key).setOrigin(0.5, 1).setDepth(bottom);
+      this.add
+        .image((block.x + block.w / 2) * TILE_PX, bottom, key)
+        .setOrigin(0.5, 1)
+        .setDepth(bottom);
       this.addLeds(block, sprite, bottom);
     }
 
@@ -149,7 +214,12 @@ export class MapScene extends Phaser.Scene {
     this.townsfolk = new Townsfolk(this, map.npcs, grid);
     this.flowWater = addWaterFlow(this, grid);
     this.scheduleAlexCough();
-    this.doors = new Doors(this, map.doors, () => this.markers.isNear || this.leaving, (door) => this.goThrough(door));
+    this.doors = new Doors(
+      this,
+      map.doors,
+      () => this.markers.isNear || this.leaving,
+      (door) => this.goThrough(door),
+    );
 
     const centersOf = (kind: string) => grid.centersOf(kind).map((c) => ({ x: c.x * TILE_PX, y: c.y * TILE_PX }));
     const blocksOf = (kind: string) =>
@@ -164,6 +234,18 @@ export class MapScene extends Phaser.Scene {
     if (map.music && track) audio.playMusic(map.music, track);
     else audio.stopMusic(1.5); // e.g. inside the data center: only the machines
 
+    if (new URLSearchParams(location.search).has('debug')) this.addDebugLabels(map);
+
+    if (this.until === 'complete') {
+      const check = () => {
+        if (this.leaving || isPopupOpen()) return;
+        const read = progress.readIds();
+        if (completionIds().every((id) => read.has(id))) this.finish();
+      };
+      const unsubscribe = progress.onChange(() => this.time.delayedCall(50, check));
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, unsubscribe);
+      this.time.delayedCall(1200, check); // already complete (e.g. after a reload)
+    }
 
     const cam = this.cameras.main;
     cam.setBounds(0, 0, worldW, worldH).setRoundPixels(true);

@@ -15,6 +15,8 @@ export function startGame(parent: string): Phaser.Game {
     pixelArt: true,
     backgroundColor: '#1b1a17',
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+    // Only clicks on the canvas itself reach the game (not the site header or pop-up buttons laid over it).
+    input: { windowEvents: false },
     scene: [StartScene, TitleScene, SequenceScene, CardScene, MapScene],
   });
 }

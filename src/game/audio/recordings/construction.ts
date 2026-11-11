@@ -4,7 +4,9 @@ import { renderLoop } from './loop';
 function clank(dt: number): number {
   if (dt < 0 || dt > 0.25) return 0;
   const env = Math.exp(-dt * 28);
-  return env * (0.5 * Math.sin(2 * Math.PI * 1870 * dt) + 0.35 * Math.sin(2 * Math.PI * 2930 * dt) + 0.25 * Math.sin(2 * Math.PI * 4410 * dt));
+  return (
+    env * (0.5 * Math.sin(2 * Math.PI * 1870 * dt) + 0.35 * Math.sin(2 * Math.PI * 2930 * dt) + 0.25 * Math.sin(2 * Math.PI * 4410 * dt))
+  );
 }
 
 /**

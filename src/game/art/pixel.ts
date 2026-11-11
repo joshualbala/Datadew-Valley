@@ -49,7 +49,10 @@ export class PixelPainter {
 
   /** 1-pixel outline of a rectangle. */
   frame(x: number, y: number, w: number, h: number, color: number): this {
-    return this.rect(x, y, w, 1, color).rect(x, y + h - 1, w, 1, color).rect(x, y, 1, h, color).rect(x + w - 1, y, 1, h, color);
+    return this.rect(x, y, w, 1, color)
+      .rect(x, y + h - 1, w, 1, color)
+      .rect(x, y, 1, h, color)
+      .rect(x + w - 1, y, 1, h, color);
   }
 
   /** Top half of a disc (for arches and domes). */

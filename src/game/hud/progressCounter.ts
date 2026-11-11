@@ -10,9 +10,7 @@ import { CREAM_TEXT, WOOD, WOOD_DARK, WOOD_LIGHT } from '../ui/theme';
  */
 export function completionIds(): string[] {
   const content = getContent();
-  const onMaps = Object.values(content.maps).flatMap((map) =>
-    map.hotspots.filter((h) => h.countsTowardCompletion).map((h) => h.id),
-  );
+  const onMaps = Object.values(content.maps).flatMap((map) => map.hotspots.filter((h) => h.countsTowardCompletion).map((h) => h.id));
   const onHud = content.hud.widgets.filter((w) => w.countsTowardCompletion).map((w) => w.id);
   return [...onMaps, ...onHud];
 }

@@ -81,7 +81,7 @@ export class SequenceScene extends Phaser.Scene {
       .setOrigin(1, 1)
       .setDepth(10);
     this.back = this.addBackButton(PIC_X + PAD, BOX_Y + BOX_H - 10, text.backButton);
-    addMuteButton(this, 20, { x: PIC_X + PIC_W - 36, y: BOX_Y + 32 });
+    addMuteButton(this, 20, { x: PIC_X + PIC_W - 28, y: BOX_Y + 26 });
 
     this.input.on('pointerdown', (_p: Phaser.Input.Pointer, over: Phaser.GameObjects.GameObject[]) => {
       if (over.length === 0) this.forward(); // clicks on buttons are handled by the buttons
@@ -217,13 +217,22 @@ export class SequenceScene extends Phaser.Scene {
 
     g.fillStyle(WOOD_DARK).fillRect(PIC_X - 4, BOX_Y - 4, PIC_W + 8, BOX_H + 8);
     g.fillStyle(PARCHMENT).fillRect(PIC_X, BOX_Y, PIC_W, BOX_H);
-    g.fillStyle(PARCHMENT_SHADE).fillRect(PIC_X, BOX_Y + BOX_H - 4, PIC_W, 4).fillRect(PIC_X + PIC_W - 4, BOX_Y, 4, BOX_H);
+    g.fillStyle(PARCHMENT_SHADE)
+      .fillRect(PIC_X, BOX_Y + BOX_H - 4, PIC_W, 4)
+      .fillRect(PIC_X + PIC_W - 4, BOX_Y, 4, BOX_H);
   }
 
   private addBackButton(x: number, bottom: number, label: string): Phaser.GameObjects.Container {
-    const arrow = makeTexture(this, 'icon-back', 4, 7, (p) => {
-      for (let i = 0; i < 4; i++) p.rect(i, 3 - i, 1, 1 + i * 2, 0x8a5a2b);
-    }, 3);
+    const arrow = makeTexture(
+      this,
+      'icon-back',
+      4,
+      7,
+      (p) => {
+        for (let i = 0; i < 4; i++) p.rect(i, 3 - i, 1, 1 + i * 2, 0x8a5a2b);
+      },
+      3,
+    );
     const icon = this.add.image(0, 0, arrow).setOrigin(0, 0.5);
     const txt = this.add.text(18, 0, label, { fontFamily: FONT, fontSize: '22px', color: INK_SOFT }).setOrigin(0, 0.5);
     const w = 18 + txt.width;

@@ -1,6 +1,7 @@
 import type { Block } from '../../content/schemas';
 import { gridOf, illustrations } from '../../game/art/illustrations';
-import { PixelPainter, type PixelTarget } from '../../game/art/pixel';
+import { PixelPainter } from '../../game/art/pixel';
+import { canvasTarget } from '../canvasTarget';
 import { audio } from '../../game/audio/audioManager';
 import { getContent } from '../../content/store';
 
@@ -13,7 +14,16 @@ export interface BlockContext {
 type Renderer<T extends Block['type']> = (block: Extract<Block, { type: T }>, ctx: BlockContext) => HTMLElement;
 
 /** Key names in a "keys" block that are drawn as arrows. */
-const ARROWS: Record<string, string> = { '↑': 'up', '↓': 'down', '←': 'left', '→': 'right', Up: 'up', Down: 'down', Left: 'left', Right: 'right' };
+const ARROWS: Record<string, string> = {
+  '↑': 'up',
+  '↓': 'down',
+  '←': 'left',
+  '→': 'right',
+  Up: 'up',
+  Down: 'down',
+  Left: 'left',
+  Right: 'right',
+};
 
 /** Create an element with a class and (safe) text. */
 function el(tag: string, className: string, text?: string): HTMLElement {
@@ -70,7 +80,8 @@ export const blockRenderers: { [T in Block['type']]: Renderer<T> } = {
   },
 
   bill: (b) => {
-    const money = (v: number) => `${v < 0 ? '-' : ''}${b.currency}${Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const money = (v: number) =>
+      `${v < 0 ? '-' : ''}${b.currency}${Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const table = el('div', 'block-bill');
     const head = el('div', 'bill-row bill-head');
     head.append(el('span', '', ''), el('span', '', b.beforeLabel), el('span', '', b.afterLabel));
@@ -151,16 +162,4 @@ export const blockRenderers: { [T in Block['type']]: Renderer<T> } = {
 
 export function renderBlock(block: Block, ctx: BlockContext): HTMLElement {
   return (blockRenderers[block.type] as Renderer<Block['type']>)(block, ctx);
-}
-
-/** Lets PixelPainter draw onto a plain 2D canvas (used for still pictures in pop-ups). */
-function canvasTarget(ctx: CanvasRenderingContext2D): PixelTarget {
-  return {
-    fillStyle(color: number, alpha = 1) {
-      ctx.fillStyle = `rgba(${(color >> 16) & 255}, ${(color >> 8) & 255}, ${color & 255}, ${alpha})`;
-    },
-    fillRect(x: number, y: number, w: number, h: number) {
-      ctx.fillRect(x, y, w, h);
-    },
-  };
 }

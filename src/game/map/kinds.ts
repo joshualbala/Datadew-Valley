@@ -133,14 +133,19 @@ export const grounds = {
       if (rng.frac() < dry * 0.8) {
         const cx = rng.between(3, 12);
         const cy = rng.between(3, 12);
-        p.rect(cx - 2, cy - 1, 5, 3, DIRT.base).rect(cx - 1, cy - 2, 3, 5, DIRT.base).px(cx, cy, DIRT.dark);
+        p.rect(cx - 2, cy - 1, 5, 3, DIRT.base)
+          .rect(cx - 1, cy - 2, 3, 5, DIRT.base)
+          .px(cx, cy, DIRT.dark);
       }
       if (dry > 0.6) return; // no fresh tufts this close
     }
     if (rng.frac() < 0.35) {
       const x = rng.between(2, 13);
       const y = rng.between(3, 14);
-      p.px(x, y, G.tuft).px(x - 1, y - 1, G.tuft).px(x + 1, y - 1, G.tuft).px(x, y - 2, G.light);
+      p.px(x, y, G.tuft)
+        .px(x - 1, y - 1, G.tuft)
+        .px(x + 1, y - 1, G.tuft)
+        .px(x, y - 2, G.light);
     }
   },
 
@@ -173,7 +178,9 @@ export const grounds = {
     for (let y = 1; y < TILE; y += 5) {
       const off = (y / 5) % 2 ? 0 : 3;
       for (let x = off - 3; x < TILE; x += 6) {
-        p.rect(x + 1, y, 4, 3, rng.frac() < 0.5 ? GOLD.light : GOLD.base).px(x + 1, y + 2, GOLD.dark).px(x + 4, y + 2, GOLD.dark);
+        p.rect(x + 1, y, 4, 3, rng.frac() < 0.5 ? GOLD.light : GOLD.base)
+          .px(x + 1, y + 2, GOLD.dark)
+          .px(x + 4, y + 2, GOLD.dark);
       }
     }
     if (!isPath(n(0, -1))) p.rect(0, 0, TILE, 1, GOLD.edge);
@@ -197,8 +204,8 @@ export const grounds = {
     if (!l) p.rect(0, 0, 1, TILE, ASPHALT.curb).rect(2, 0, 1, TILE, ASPHALT.edgeLine);
     if (!r) p.rect(TILE - 1, 0, 1, TILE, ASPHALT.curb).rect(TILE - 3, 0, 1, TILE, ASPHALT.edgeLine);
     // Center line on straight stretches only (not at crossings).
-    const horizontal = l && r && u !== d && !(isRoad(n(0, d ? 2 : -2)));
-    const vertical = u && d && l !== r && !(isRoad(n(r ? 2 : -2, 0)));
+    const horizontal = l && r && u !== d && !isRoad(n(0, d ? 2 : -2));
+    const vertical = u && d && l !== r && !isRoad(n(r ? 2 : -2, 0));
     if (horizontal) {
       const y = d ? TILE - 1 : 0;
       for (let x = 1; x < TILE; x += 8) p.rect(x, y, 5, 1, ASPHALT.center);
@@ -212,7 +219,13 @@ export const grounds = {
   floor(p: PixelPainter) {
     p.rect(0, 0, TILE, TILE, 0xb9bec6).rect(0, 0, TILE, 1, 0xa3a9b1).rect(0, 0, 1, TILE, 0xa3a9b1);
     p.rect(1, 1, TILE - 1, 1, 0xc9ced5);
-    for (const [x, y] of [[4, 4], [11, 4], [4, 11], [11, 11]]) p.px(x, y, 0x9aa0a8);
+    for (const [x, y] of [
+      [4, 4],
+      [11, 4],
+      [4, 11],
+      [11, 11],
+    ])
+      p.px(x, y, 0x9aa0a8);
   },
 
   /** Cold-aisle floor: vented panels with a faint blue chill. */
@@ -315,7 +328,11 @@ export const grounds = {
     if (land(n(1, 0))) p.rect(TILE - 1, 0, 1, TILE, 0x2a2c30).rect(TILE - 2, 0, 1, TILE, ASPHALT.light);
     if (land(n(0, -1))) p.rect(0, 0, TILE, 1, 0x2a2c30).rect(0, 1, TILE, 1, ASPHALT.light);
     if (land(n(0, 1))) p.rect(0, TILE - 1, TILE, 1, 0x2a2c30).rect(0, TILE - 2, TILE, 1, ASPHALT.light);
-    const pier = (x: number, y: number) => p.rect(x, y, 4, 7, RAIL.base).rect(x, y, 4, 1, RAIL.light).rect(x + 3, y, 1, 7, RAIL.dark);
+    const pier = (x: number, y: number) =>
+      p
+        .rect(x, y, 4, 7, RAIL.base)
+        .rect(x, y, 4, 1, RAIL.light)
+        .rect(x + 3, y, 1, 7, RAIL.dark);
     if (water[0] && land(n(-1, 0))) pier(0, 0);
     if (water[0] && land(n(1, 0))) pier(TILE - 4, 0);
     if (water[1] && land(n(-1, 0))) pier(0, TILE - 7);
@@ -396,7 +413,9 @@ const wilted = (w: number, h: number, draw: (p: PixelPainter, wilt: number) => v
 };
 
 /** A 1-tile street prop: drawn standing on the tile's bottom edge. */
-const prop = (w: number, h: number, draw: (p: PixelPainter) => void, sink = -3): Kind['object'] => () => ({ w, h, sink, draw });
+const prop =
+  (w: number, h: number, draw: (p: PixelPainter) => void, sink = -3): Kind['object'] =>
+  () => ({ w, h, sink, draw });
 /** A prop whose colors vary by position. */
 const variedProp =
   (w: number, h: number, draw: (p: PixelPainter, v: number) => void, sink = -3): Kind['object'] =>
@@ -475,7 +494,11 @@ export const kinds: Record<string, Kind> = {
   workstation: { ground: 'floor', walkable: false, object: prop(16, 24, workstation, -1), npc: 'linger' },
 
   /** A dead tree standing on cleared, bare ground. */
-  'tree-dead': { ground: 'dirt', walkable: false, object: (_n, at) => ((at.x + at.y) % 2 ? wilted(30, 36, wiltedOak, 1) : wilted(22, 42, wiltedPine, 1)) },
+  'tree-dead': {
+    ground: 'dirt',
+    walkable: false,
+    object: (_n, at) => ((at.x + at.y) % 2 ? wilted(30, 36, wiltedOak, 1) : wilted(22, 42, wiltedPine, 1)),
+  },
   /** Healthy trees, for maps from before the data center. */
   'tree-pine-healthy': { ground: 'grass', walkable: false, object: () => ({ w: 22, h: 42, sink: -2, draw: pine }) },
   'tree-oak-healthy': { ground: 'grass', walkable: false, object: () => ({ w: 30, h: 36, sink: -2, draw: oak }) },

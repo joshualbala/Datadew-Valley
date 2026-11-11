@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "_description": "The people on the About Us page, in order. Each person: 'name', 'role' (a short line under the name), 'image' (path to a photo inside public/, e.g. \"assets/team/jane.jpg\"; leave \"\" to show a pixel-art avatar instead), 'description' (a short bio).",
+  "_usedIn": "About Us page → the team section",
+  "people": [
+    {
+      "_location": "About Us, person 1",
+      "name": "PLACEHOLDER Name",
+      "role": "PLACEHOLDER: Role",
+      "image": "",
+      "description": "PLACEHOLDER: A short bio: year, concentration, and what they worked on."
+    },
+    {
+      "_location": "About Us, person 2",
+      "name": "PLACEHOLDER Name",
+      "role": "PLACEHOLDER: Role",
+      "image": "",
+      "description": "PLACEHOLDER: A short bio: year, concentration, and what they worked on."
+    },
+    {
+      "_location": "About Us, person 3",
+      "name": "PLACEHOLDER Name",
+      "role": "PLACEHOLDER: Role",
+      "image": "",
+      "description": "PLACEHOLDER: A short bio: year, concentration, and what they worked on."
+    },
+    {
+      "_location": "About Us, person 4",
+      "name": "PLACEHOLDER Name",
+      "role": "PLACEHOLDER: Role",
+      "image": "",
+      "description": "PLACEHOLDER: A short bio: year, concentration, and what they worked on."
+    }
+  ]
+}

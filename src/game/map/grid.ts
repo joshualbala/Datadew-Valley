@@ -83,7 +83,8 @@ export function parseMap(map: MapContent): ParsedMap {
     if (!reachable(spot.x, spot.y)) {
       errors.push(`Hotspot "${spot.id}" (column ${spot.x}, row ${spot.y}) must be on, or right next to, a walkable tile.`);
     }
-    if (spot.area && !usedKinds.has(spot.area)) errors.push(`Hotspot "${spot.id}" has area "${spot.area}", but no tile of that kind is in the legend.`);
+    if (spot.area && !usedKinds.has(spot.area))
+      errors.push(`Hotspot "${spot.id}" has area "${spot.area}", but no tile of that kind is in the legend.`);
   }
   for (const source of [map.dryness?.source].filter(Boolean) as string[]) {
     if (!usedKinds.has(source)) errors.push(`dryness.source "${source}" is not a tile kind in the legend.`);
@@ -91,10 +92,12 @@ export function parseMap(map: MapContent): ParsedMap {
   map.npcs.forEach((npc, i) => {
     if (!walkable(npc.x, npc.y)) errors.push(`Person ${i + 1} (column ${npc.x}, row ${npc.y}) must start on a walkable tile.`);
     const looks = npc.role === 'worker' ? WORKERS : TOWNSFOLK;
-    if (npc.look >= looks.length) errors.push(`Person ${i + 1} (${npc.role}) has look ${npc.look}; looks go from 0 to ${looks.length - 1}.`);
+    if (npc.look >= looks.length)
+      errors.push(`Person ${i + 1} (${npc.role}) has look ${npc.look}; looks go from 0 to ${looks.length - 1}.`);
   });
   map.doors.forEach((door, i) => {
-    if (!reachable(door.x, door.y)) errors.push(`Door ${i + 1} (to "${door.to}", column ${door.x}, row ${door.y}) must be on, or right next to, a walkable tile.`);
+    if (!reachable(door.x, door.y))
+      errors.push(`Door ${i + 1} (to "${door.to}", column ${door.x}, row ${door.y}) must be on, or right next to, a walkable tile.`);
   });
   if (!walkable(map.spawn.x, map.spawn.y)) errors.push(`The spawn (column ${map.spawn.x}, row ${map.spawn.y}) must be a walkable tile.`);
 

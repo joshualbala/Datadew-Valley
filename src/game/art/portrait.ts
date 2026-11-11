@@ -26,7 +26,9 @@ export function portrait(p: PixelPainter, look: Look, state: 'healthy' | 'sickly
   else p.dither(0, 0, 26, 26, 0x6f7768, 0.5);
 
   // Shoulders and collar.
-  p.rect(3, 21, 20, 5, look.shirt).rect(3, 21, 20, 1, mix(look.shirt, 0xffffff, 0.2)).rect(11, 21, 4, 2, skin);
+  p.rect(3, 21, 20, 5, look.shirt)
+    .rect(3, 21, 20, 1, mix(look.shirt, 0xffffff, 0.2))
+    .rect(11, 21, 4, 2, skin);
   // Neck and head.
   p.rect(10, 18, 6, 4, shade);
   p.rect(6, 6, 14, 14, skin).rect(7, 5, 12, 1, skin).rect(7, 20, 12, 1, skin);
@@ -34,7 +36,15 @@ export function portrait(p: PixelPainter, look: Look, state: 'healthy' | 'sickly
   p.rect(18, 7, 2, 12, shade).rect(7, 19, 12, 1, shade);
   // Short curly hair.
   p.rect(6, 2, 14, 4, look.hair).rect(5, 4, 16, 3, look.hair).rect(5, 7, 2, 3, look.hair).rect(19, 7, 2, 3, look.hair);
-  for (const [x, y] of [[7, 2], [11, 1], [15, 2], [9, 4], [13, 3], [17, 4]]) p.px(x, y, mix(look.hair, 0xffffff, 0.18));
+  for (const [x, y] of [
+    [7, 2],
+    [11, 1],
+    [15, 2],
+    [9, 4],
+    [13, 3],
+    [17, 4],
+  ])
+    p.px(x, y, mix(look.hair, 0xffffff, 0.18));
 
   if (sick) {
     // Tired, half-closed eyes with dark circles.

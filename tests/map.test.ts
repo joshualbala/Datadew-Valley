@@ -175,11 +175,20 @@ describe('neighbors and slide sounds', () => {
         .filter((d) => grid.walkable(d.x, d.y));
       const lingerSpots = grid.objects
         .filter((b) => kinds[b.kind].npc === 'linger')
-        .flatMap((b) => [{ x: b.x, y: b.y + 1 }, { x: b.x - 1, y: b.y }, { x: b.x + 1, y: b.y }].filter((t) => grid.walkable(t.x, t.y)));
+        .flatMap((b) =>
+          [
+            { x: b.x, y: b.y + 1 },
+            { x: b.x - 1, y: b.y },
+            { x: b.x + 1, y: b.y },
+          ].filter((t) => grid.walkable(t.x, t.y)),
+        );
       for (const npc of map.npcs) {
         const reach = (role: string) => doors.some((d) => d.role === role && findPath({ w: grid.w, h: grid.h, cost }, npc, d));
         if (npc.role === 'worker') {
-          expect(lingerSpots.some((t) => findPath({ w: grid.w, h: grid.h, cost }, npc, t)), `worker at ${npc.x},${npc.y} can't reach a workstation`).toBe(true);
+          expect(
+            lingerSpots.some((t) => findPath({ w: grid.w, h: grid.h, cost }, npc, t)),
+            `worker at ${npc.x},${npc.y} can't reach a workstation`,
+          ).toBe(true);
           continue;
         }
         expect(reach('home'), `neighbor at ${npc.x},${npc.y} can't reach any home`).toBe(true);

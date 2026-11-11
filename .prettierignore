@@ -1,0 +1,10 @@
+dist/
+node_modules/
+package-lock.json
+# Content files are hand-formatted for the team (e.g. one map row per line).
+public/content/
+playwright-report/
+test-results/
+src/game/audio/songs/
+# Hand-written docs (big tables) keep their own layout.
+*.md

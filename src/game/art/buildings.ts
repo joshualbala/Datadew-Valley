@@ -10,12 +10,7 @@ import { C } from './palette';
  * Options: `flagpole`, `wingRoofs` (gray slate roofs on the wings) and `belfry`
  * (the bell section of the tower; without it the hall is 104 tall instead of 120).
  */
-export function townHall(
-  p: PixelPainter,
-  x: number,
-  y: number,
-  { flagpole = true, wingRoofs = true, belfry = true } = {},
-): void {
+export function townHall(p: PixelPainter, x: number, y: number, { flagpole = true, wingRoofs = true, belfry = true } = {}): void {
   const w = 120;
   const cx = x + w / 2;
   const top = y - 44; // top of main walls
@@ -26,7 +21,13 @@ export function townHall(
   p.rect(cx - 12, top - 41, 24, 2, C.stoneDark);
   p.disc(cx, top - 26, 7, C.stoneDark).disc(cx, top - 26, 6, C.white);
   p.rect(cx, top - 31, 1, 5, C.ironDark).rect(cx, top - 26, 4, 1, C.ironDark);
-  for (const [dx, dy] of [[0, -5], [5, 0], [0, 5], [-5, 0]]) p.px(cx + dx, top - 26 + dy, C.ironDark);
+  for (const [dx, dy] of [
+    [0, -5],
+    [5, 0],
+    [0, 5],
+    [-5, 0],
+  ])
+    p.px(cx + dx, top - 26 + dy, C.ironDark);
   if (belfry) {
     p.rect(cx - 9, top - 56, 18, 15, C.stone).rect(cx - 9, top - 56, 1, 15, C.stoneShade);
     p.rect(cx - 5, top - 53, 10, 10, C.brickRecess).halfDisc(cx, top - 53, 5, C.brickRecess);
@@ -52,7 +53,8 @@ export function townHall(
   p.rect(x, top, w, 44, C.brick);
   for (let row = 0; row < 44; row += 4) {
     p.rect(x, top + row, w, 1, C.brickDark);
-    for (let col = (row / 4) % 2 ? 0 : 4; col < w; col += 8) p.px(x + col, top + row + 1, C.brickDark).px(x + col, top + row + 2, C.brickDark);
+    for (let col = (row / 4) % 2 ? 0 : 4; col < w; col += 8)
+      p.px(x + col, top + row + 1, C.brickDark).px(x + col, top + row + 2, C.brickDark);
   }
   // Cornice and plinth.
   p.rect(x - 2, top - 2, w + 4, 3, C.stone).rect(x - 2, top + 1, w + 4, 1, C.stoneDark);
@@ -63,7 +65,9 @@ export function townHall(
     p.rect(wx - 1, top + 10, 10, 18, C.stone).halfDisc(wx + 4, top + 10, 5, C.stone);
     p.rect(wx, top + 11, 8, 16, C.glass).halfDisc(wx + 4, top + 11, 4, C.glass);
     p.rect(wx + 4, top + 8, 1, 19, C.stone).rect(wx, top + 18, 8, 1, C.stone);
-    p.px(wx + 1, top + 12, C.glassHi).px(wx + 2, top + 13, C.glassHi).px(wx + 5, top + 20, C.glassHi);
+    p.px(wx + 1, top + 12, C.glassHi)
+      .px(wx + 2, top + 13, C.glassHi)
+      .px(wx + 5, top + 20, C.glassHi);
     p.rect(wx - 2, top + 28, 12, 2, C.stoneDark);
     // Flower box.
     p.rect(wx - 1, top + 30, 10, 2, C.door);
@@ -85,7 +89,9 @@ export function townHall(
     const colX = px0 + 1 + i * 10;
     if (i === 2) continue; // leave the door visible
     p.rect(colX - 1, top + 2, 7, 2, C.stoneDark); // capital
-    p.rect(colX, top + 4, 5, 33, C.stone).rect(colX + 4, top + 4, 1, 33, C.stoneShade).rect(colX + 2, top + 4, 1, 33, C.stoneShade);
+    p.rect(colX, top + 4, 5, 33, C.stone)
+      .rect(colX + 4, top + 4, 1, 33, C.stoneShade)
+      .rect(colX + 2, top + 4, 1, 33, C.stoneShade);
     p.rect(colX - 1, top + 37, 7, 2, C.stoneDark); // base
   }
   // Pediment (triangle).
@@ -103,11 +109,16 @@ export function townHall(
 
   // Lamp posts beside the steps.
   for (const lx of [cx - 30, cx + 29]) {
-    p.rect(lx, y - 18, 1, 20, C.ironDark).rect(lx - 2, y - 22, 5, 4, C.ironDark).rect(lx - 1, y - 21, 3, 2, C.lamp);
+    p.rect(lx, y - 18, 1, 20, C.ironDark)
+      .rect(lx - 2, y - 22, 5, 4, C.ironDark)
+      .rect(lx - 1, y - 21, 3, 2, C.lamp);
   }
   // Hedges along the front.
   for (const hx of [x + 4, x + 20, x + w - 34, x + w - 18]) {
-    p.disc(hx + 5, y, 5, C.leafDark).disc(hx + 5, y - 1, 4, C.leaf).px(hx + 3, y - 3, C.leafLight).px(hx + 6, y - 4, C.leafLight);
+    p.disc(hx + 5, y, 5, C.leafDark)
+      .disc(hx + 5, y - 1, 4, C.leaf)
+      .px(hx + 3, y - 3, C.leafLight)
+      .px(hx + 6, y - 4, C.leafLight);
   }
 }
 
@@ -121,7 +132,9 @@ export function dataCenter(p: PixelPainter, x: number, y: number): void {
 
   // Exhaust stacks (behind roofline, right side).
   for (const sx of [x + w - 26, x + w - 14]) {
-    p.rect(sx, top - 30, 8, 32, C.dcPanel).rect(sx, top - 30, 2, 32, C.white).rect(sx + 6, top - 30, 2, 32, C.dcDark);
+    p.rect(sx, top - 30, 8, 32, C.dcPanel)
+      .rect(sx, top - 30, 2, 32, C.white)
+      .rect(sx + 6, top - 30, 2, 32, C.dcDark);
     p.rect(sx, top - 26, 8, 2, 0xd9534f).rect(sx, top - 20, 8, 2, 0xd9534f);
     p.rect(sx - 1, top - 31, 10, 2, C.dcDarker);
   }
@@ -129,7 +142,9 @@ export function dataCenter(p: PixelPainter, x: number, y: number): void {
   // Rooftop HVAC units (fans are animated sprites placed on top).
   for (let i = 0; i < 4; i++) {
     const ux = x + 6 + i * 22;
-    p.rect(ux, top - 9, 18, 10, C.dcRoof).rect(ux, top - 9, 18, 2, C.dcPanel).rect(ux + 17, top - 9, 1, 10, C.dcDark);
+    p.rect(ux, top - 9, 18, 10, C.dcRoof)
+      .rect(ux, top - 9, 18, 2, C.dcPanel)
+      .rect(ux + 17, top - 9, 1, 10, C.dcDark);
     p.disc(ux + 9, top - 4, 4, C.dcDarker);
   }
 
@@ -145,13 +160,20 @@ export function dataCenter(p: PixelPainter, x: number, y: number): void {
   // Entrance with canopy and glass doors.
   const ex = x + 12;
   p.rect(ex - 3, top + 22, 28, 3, C.dcDarker);
-  p.rect(ex, top + 25, 22, h - 25, C.dcDarker).rect(ex + 1, top + 26, 9, h - 26, C.dcGlass).rect(ex + 12, top + 26, 9, h - 26, C.dcGlass);
-  p.px(ex + 2, top + 27, C.glassHi).px(ex + 3, top + 28, C.glassHi).px(ex + 13, top + 27, C.glassHi).px(ex + 14, top + 28, C.glassHi);
+  p.rect(ex, top + 25, 22, h - 25, C.dcDarker)
+    .rect(ex + 1, top + 26, 9, h - 26, C.dcGlass)
+    .rect(ex + 12, top + 26, 9, h - 26, C.dcGlass);
+  p.px(ex + 2, top + 27, C.glassHi)
+    .px(ex + 3, top + 28, C.glassHi)
+    .px(ex + 13, top + 27, C.glassHi)
+    .px(ex + 14, top + 28, C.glassHi);
 
   // Logo panel: blue square with a little white cloud.
   const lx = x + 46;
   p.rect(lx, top + 24, 18, 12, C.dcBlue).frame(lx, top + 24, 18, 12, 0x1f54a8);
-  p.disc(lx + 7, top + 31, 2, C.white).disc(lx + 10, top + 30, 3, C.white).rect(lx + 5, top + 31, 9, 2, C.white);
+  p.disc(lx + 7, top + 31, 2, C.white)
+    .disc(lx + 10, top + 30, 3, C.white)
+    .rect(lx + 5, top + 31, 9, 2, C.white);
 
   // Server status strip (LEDs are animated sprites).
   p.rect(x + 76, top + 26, 44, 8, C.dcDarker);

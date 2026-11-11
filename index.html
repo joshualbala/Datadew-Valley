@@ -7,8 +7,15 @@
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
-  <body>
-    <main id="game" aria-label="Datadew Valley simulation"></main>
+  <body class="on-game">
+    <header id="site-header" class="site-header"></header>
+    <main class="site-main">
+      <section id="game-page" class="game-page" aria-label="Simulation">
+        <div id="game"></div>
+      </section>
+      <section id="page" class="page" hidden></section>
+    </main>
+    <div id="small-screen" class="small-screen" role="alert"></div>
     <div id="error" class="error" role="alert" hidden></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

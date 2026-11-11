@@ -130,12 +130,13 @@ export class Townsfolk {
       if (!role) continue;
       let spot: Tile | null = null;
       if (role === 'linger') {
-        spot = [
-          { x: b.x, y: b.y + 1 },
-          { x: b.x - 1, y: b.y },
-          { x: b.x + 1, y: b.y },
-          { x: b.x, y: b.y - 1 },
-        ].find((t) => this.grid.walkable(t.x, t.y)) ?? null;
+        spot =
+          [
+            { x: b.x, y: b.y + 1 },
+            { x: b.x - 1, y: b.y },
+            { x: b.x + 1, y: b.y },
+            { x: b.x, y: b.y - 1 },
+          ].find((t) => this.grid.walkable(t.x, t.y)) ?? null;
       } else {
         const door = { x: b.x + (kinds[b.kind].door ?? Math.floor(b.w / 2)), y: b.y + b.h };
         spot = this.grid.walkable(door.x, door.y) ? door : null;

@@ -21,19 +21,26 @@ export const DATA_CENTER_X = 344;
 
 /** Paint the static parts of the scene into one texture (drawn once, cheap to render). */
 export function paintBackground(scene: Phaser.Scene, key = 'title-bg'): string {
-  return makeTexture(scene, key, AW, AH, (p) => {
-    const rng = new Phaser.Math.RandomDataGenerator(['datadew-valley']);
-    sky(p);
-    sun(p, 432, 38);
-    mountains(p);
-    farHills(p, rng);
-    nearHills(p, rng);
-    meadow(p, rng);
-    river(p, rng);
-    townHall(p, TOWN_HALL_X, GROUND_Y, { flagpole: false, wingRoofs: false });
-    dataCenter(p, DATA_CENTER_X, GROUND_Y);
-    foreground(p, rng);
-  }, ART_PX);
+  return makeTexture(
+    scene,
+    key,
+    AW,
+    AH,
+    (p) => {
+      const rng = new Phaser.Math.RandomDataGenerator(['datadew-valley']);
+      sky(p);
+      sun(p, 432, 38);
+      mountains(p);
+      farHills(p, rng);
+      nearHills(p, rng);
+      meadow(p, rng);
+      river(p, rng);
+      townHall(p, TOWN_HALL_X, GROUND_Y, { flagpole: false, wingRoofs: false });
+      dataCenter(p, DATA_CENTER_X, GROUND_Y);
+      foreground(p, rng);
+    },
+    ART_PX,
+  );
 }
 
 // ------------------------------------------------------------------ layers
@@ -50,12 +57,23 @@ function sky(p: PixelPainter): void {
 }
 
 function sun(p: PixelPainter, x: number, y: number): void {
-  p.disc(x, y, 22, C.sunGlow, 0.35).disc(x, y, 17, C.sunGlow, 0.6).disc(x, y, 13, C.sun).disc(x - 3, y - 3, 7, C.sunCore);
+  p.disc(x, y, 22, C.sunGlow, 0.35)
+    .disc(x, y, 17, C.sunGlow, 0.6)
+    .disc(x, y, 13, C.sun)
+    .disc(x - 3, y - 3, 7, C.sunCore);
 }
 
 function mountains(p: PixelPainter): void {
   // Each peak is a cone; the skyline is whichever cone is highest at each column.
-  const peaks: [number, number][] = [[20, 92], [96, 100], [176, 86], [262, 102], [338, 90], [430, 96], [500, 104]];
+  const peaks: [number, number][] = [
+    [20, 92],
+    [96, 100],
+    [176, 86],
+    [262, 102],
+    [338, 90],
+    [430, 96],
+    [500, 104],
+  ];
   const slope = 0.6;
   for (let x = 0; x < AW; x++) {
     let best = { y: 999, px: 0, py: 0 };
@@ -106,7 +124,6 @@ function meadow(p: PixelPainter, rng: Phaser.Math.RandomDataGenerator): void {
   for (let i = 0; i < 900; i++) p.px(rng.between(0, AW), rng.between(top + 2, AH), rng.pick([C.meadowLight, C.meadowDark]));
   for (let i = 0; i < 160; i++) tuft(p, rng.between(0, AW), rng.between(top + 6, AH - 2));
 }
-
 
 function river(p: PixelPainter, rng: Phaser.Math.RandomDataGenerator): void {
   for (let x = 0; x < AW; x++) {
@@ -164,27 +181,105 @@ export function makeSceneryTextures(scene: Phaser.Scene): void {
 
   makeTexture(scene, 'bush', 20, 11, bush, ART_PX);
 
-  makeTexture(scene, 'cloud-big', 48, 16, (p) => {
-    p.disc(12, 10, 6, C.cloud).disc(22, 7, 7, C.cloud).disc(32, 9, 6, C.cloud).disc(40, 11, 4, C.cloud);
-    p.rect(6, 11, 38, 5, C.cloud).rect(7, 14, 36, 2, C.cloudShade);
-  }, ART_PX);
-  makeTexture(scene, 'cloud-small', 28, 11, (p) => {
-    p.disc(8, 7, 4, C.cloud).disc(15, 5, 5, C.cloud).disc(21, 7, 4, C.cloud);
-    p.rect(4, 7, 21, 4, C.cloud).rect(5, 9, 19, 2, C.cloudShade);
-  }, ART_PX);
+  makeTexture(
+    scene,
+    'cloud-big',
+    48,
+    16,
+    (p) => {
+      p.disc(12, 10, 6, C.cloud).disc(22, 7, 7, C.cloud).disc(32, 9, 6, C.cloud).disc(40, 11, 4, C.cloud);
+      p.rect(6, 11, 38, 5, C.cloud).rect(7, 14, 36, 2, C.cloudShade);
+    },
+    ART_PX,
+  );
+  makeTexture(
+    scene,
+    'cloud-small',
+    28,
+    11,
+    (p) => {
+      p.disc(8, 7, 4, C.cloud).disc(15, 5, 5, C.cloud).disc(21, 7, 4, C.cloud);
+      p.rect(4, 7, 21, 4, C.cloud).rect(5, 9, 19, 2, C.cloudShade);
+    },
+    ART_PX,
+  );
 
   // Two-frame bird.
-  makeTexture(scene, 'bird-0', 7, 3, (p) => p.px(0, 0, 0x3a3a4a).px(1, 1, 0x3a3a4a).px(2, 2, 0x3a3a4a).px(3, 1, 0x3a3a4a).px(4, 0, 0x3a3a4a).px(5, 0, 0x3a3a4a).px(6, 0, 0x3a3a4a), ART_PX);
-  makeTexture(scene, 'bird-1', 7, 3, (p) => p.px(0, 2, 0x3a3a4a).px(1, 1, 0x3a3a4a).px(2, 1, 0x3a3a4a).px(3, 2, 0x3a3a4a).px(4, 1, 0x3a3a4a).px(5, 1, 0x3a3a4a).px(6, 2, 0x3a3a4a), ART_PX);
+  makeTexture(
+    scene,
+    'bird-0',
+    7,
+    3,
+    (p) =>
+      p
+        .px(0, 0, 0x3a3a4a)
+        .px(1, 1, 0x3a3a4a)
+        .px(2, 2, 0x3a3a4a)
+        .px(3, 1, 0x3a3a4a)
+        .px(4, 0, 0x3a3a4a)
+        .px(5, 0, 0x3a3a4a)
+        .px(6, 0, 0x3a3a4a),
+    ART_PX,
+  );
+  makeTexture(
+    scene,
+    'bird-1',
+    7,
+    3,
+    (p) =>
+      p
+        .px(0, 2, 0x3a3a4a)
+        .px(1, 1, 0x3a3a4a)
+        .px(2, 1, 0x3a3a4a)
+        .px(3, 2, 0x3a3a4a)
+        .px(4, 1, 0x3a3a4a)
+        .px(5, 1, 0x3a3a4a)
+        .px(6, 2, 0x3a3a4a),
+    ART_PX,
+  );
 
   // Rooftop fan blades (rotated by the scene).
-  makeTexture(scene, 'fan', 7, 7, (p) => {
-    p.rect(3, 0, 1, 7, C.dcPanel).rect(0, 3, 7, 1, C.dcPanel).px(1, 1, C.dcDark).px(5, 5, C.dcDark).px(5, 1, C.dcDark).px(1, 5, C.dcDark).px(3, 3, C.dcDarker);
-  }, ART_PX);
+  makeTexture(
+    scene,
+    'fan',
+    7,
+    7,
+    (p) => {
+      p.rect(3, 0, 1, 7, C.dcPanel)
+        .rect(0, 3, 7, 1, C.dcPanel)
+        .px(1, 1, C.dcDark)
+        .px(5, 5, C.dcDark)
+        .px(5, 1, C.dcDark)
+        .px(1, 5, C.dcDark)
+        .px(3, 3, C.dcDarker);
+    },
+    ART_PX,
+  );
 
   makeTexture(scene, 'led', 2, 1, (p) => p.rect(0, 0, 2, 1, 0xffffff), ART_PX);
   makeTexture(scene, 'puff', 6, 6, (p) => p.disc(3, 3, 2, 0xffffff).px(2, 2, 0xffffff), ART_PX);
-  makeTexture(scene, 'sparkle', 3, 3, (p) => p.px(1, 0, 0xffffff).px(0, 1, 0xffffff).px(1, 1, 0xffffff).px(2, 1, 0xffffff).px(1, 2, 0xffffff), ART_PX);
-  makeTexture(scene, 'butterfly-0', 5, 3, (p) => p.rect(0, 0, 2, 2, 0xff9ad5).rect(3, 0, 2, 2, 0xff9ad5).px(2, 1, 0x3a2a1a).px(2, 2, 0x3a2a1a), ART_PX);
-  makeTexture(scene, 'butterfly-1', 5, 3, (p) => p.rect(1, 1, 1, 1, 0xff9ad5).rect(3, 1, 1, 1, 0xff9ad5).px(2, 0, 0x3a2a1a).px(2, 1, 0x3a2a1a).px(2, 2, 0x3a2a1a), ART_PX);
+  makeTexture(
+    scene,
+    'sparkle',
+    3,
+    3,
+    (p) => p.px(1, 0, 0xffffff).px(0, 1, 0xffffff).px(1, 1, 0xffffff).px(2, 1, 0xffffff).px(1, 2, 0xffffff),
+    ART_PX,
+  );
+  makeTexture(
+    scene,
+    'butterfly-0',
+    5,
+    3,
+    (p) => p.rect(0, 0, 2, 2, 0xff9ad5).rect(3, 0, 2, 2, 0xff9ad5).px(2, 1, 0x3a2a1a).px(2, 2, 0x3a2a1a),
+    ART_PX,
+  );
+  makeTexture(
+    scene,
+    'butterfly-1',
+    5,
+    3,
+    (p) => p.rect(1, 1, 1, 1, 0xff9ad5).rect(3, 1, 1, 1, 0xff9ad5).px(2, 0, 0x3a2a1a).px(2, 1, 0x3a2a1a).px(2, 2, 0x3a2a1a),
+    ART_PX,
+  );
 }

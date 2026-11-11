@@ -23,7 +23,8 @@ type EffectFactory = (scene: Phaser.Scene, cfg: Record<string, unknown>, ctx: Ef
 
 const num = (v: unknown, fallback: number) => (typeof v === 'number' ? v : fallback);
 const str = (v: unknown, fallback: string) => (typeof v === 'string' ? v : fallback);
-const color = (v: unknown, fallback: number) => (typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) ? Number.parseInt(v.slice(1), 16) : fallback);
+const color = (v: unknown, fallback: number) =>
+  typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) ? Number.parseInt(v.slice(1), 16) : fallback;
 
 /** Soft round blob texture (alpha falls off from the middle), used for smog and cloud shadows. */
 function softBlob(scene: Phaser.Scene, key: string, size: number): string {
@@ -67,7 +68,12 @@ export const effects: Record<string, EffectFactory> = {
     const tint = color(cfg.color, 0x8a8070);
     const blob = softBlob(scene, 'fx-blob', 128);
     for (const s of sources) {
-      scene.add.image(s.x, s.y, blob).setDisplaySize(radius * 2.2, radius * 2.2).setTint(tint).setAlpha(maxAlpha).setDepth(60000);
+      scene.add
+        .image(s.x, s.y, blob)
+        .setDisplaySize(radius * 2.2, radius * 2.2)
+        .setTint(tint)
+        .setAlpha(maxAlpha)
+        .setDepth(60000);
       for (let i = 0; i < 9; i++) {
         const puff = scene.add
           .image(s.x + Phaser.Math.Between(-radius / 2, radius / 2), s.y + Phaser.Math.Between(-radius / 2, radius / 2), blob)
@@ -114,7 +120,12 @@ export const effects: Record<string, EffectFactory> = {
     }
     // Screen-wide haze: always a little, thicker as Alex walks toward the source.
     const baseVeil = num(cfg.baseVeil, 0);
-    const veil = scene.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, tint).setOrigin(0).setScrollFactor(0).setDepth(90000).setAlpha(baseVeil);
+    const veil = scene.add
+      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, tint)
+      .setOrigin(0)
+      .setScrollFactor(0)
+      .setDepth(90000)
+      .setAlpha(baseVeil);
     return {
       update(px, py) {
         let closest = Infinity;

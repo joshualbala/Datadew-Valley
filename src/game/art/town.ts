@@ -46,7 +46,10 @@ export function modernHouse(p: PixelPainter, variant: number): void {
   p.rect(36, 28, 7, ground - 28, TRIM).px(41, 36, 0xc9a227);
   // Plinth and planter.
   p.rect(2, ground - 2, 44, 2, 0xa7a9ad);
-  p.rect(5, ground - 6, 22, 4, 0x8a8f99).rect(6, ground - 8, 20, 2, C.leaf).px(9, ground - 9, C.flowers[0]).px(18, ground - 9, C.flowers[1]);
+  p.rect(5, ground - 6, 22, 4, 0x8a8f99)
+    .rect(6, ground - 8, 20, 2, C.leaf)
+    .px(9, ground - 9, C.flowers[0])
+    .px(18, ground - 9, C.flowers[1]);
 }
 
 /** Two-story house with a porch (48×62, ground at y 60). */
@@ -66,16 +69,23 @@ export function tallHouse(p: PixelPainter, variant: number): void {
   for (let y = top + 2; y < ground; y += 3) p.rect(3, y, 42, 1, c.wallShade);
   // Windows: two floors.
   for (const wx of [8, 21, 34]) {
-    p.rect(wx - 1, top + 4, 8, 9, C.stone).rect(wx, top + 5, 6, 7, GLASS).rect(wx, top + 8, 6, 1, C.stone).px(wx + 1, top + 6, GLASS_HI);
+    p.rect(wx - 1, top + 4, 8, 9, C.stone)
+      .rect(wx, top + 5, 6, 7, GLASS)
+      .rect(wx, top + 8, 6, 1, C.stone)
+      .px(wx + 1, top + 6, GLASS_HI);
     p.rect(wx - 2, top + 5, 1, 7, c.roofDark).rect(wx + 7, top + 5, 1, 7, c.roofDark); // shutters
   }
   for (const wx of [8, 34]) {
-    p.rect(wx - 1, top + 20, 8, 9, C.stone).rect(wx, top + 21, 6, 7, GLASS).rect(wx, top + 24, 6, 1, C.stone);
+    p.rect(wx - 1, top + 20, 8, 9, C.stone)
+      .rect(wx, top + 21, 6, 7, GLASS)
+      .rect(wx, top + 24, 6, 1, C.stone);
   }
   // Porch with roof, posts and door.
   p.rect(16, top + 17, 16, 2, c.roofDark);
   p.rect(17, top + 19, 1, ground - top - 19, C.stone).rect(30, top + 19, 1, ground - top - 19, C.stone);
-  p.rect(20, top + 22, 8, ground - top - 22, C.doorDark).rect(21, top + 23, 6, ground - top - 23, C.door).px(26, top + 30, C.gold);
+  p.rect(20, top + 22, 8, ground - top - 22, C.doorDark)
+    .rect(21, top + 23, 6, ground - top - 23, C.door)
+    .px(26, top + 30, C.gold);
   p.rect(15, ground - 2, 18, 2, C.stoneShade);
 }
 
@@ -85,7 +95,9 @@ export function shop(p: PixelPainter, variant: number): void {
   const stripe = pick([0xd62828, 0x2f9e5a, 0x2e6fd6, 0xf28c28], variant + 1);
   const ground = 48;
   // Building with a parapet.
-  p.rect(2, 4, 60, ground - 4, facade).rect(0, 2, 64, 4, 0x000000, 0.25).rect(0, 2, 64, 2, 0xffffff, 0.2);
+  p.rect(2, 4, 60, ground - 4, facade)
+    .rect(0, 2, 64, 4, 0x000000, 0.25)
+    .rect(0, 2, 64, 2, 0xffffff, 0.2);
   for (let y = 8; y < 22; y += 4) p.rect(2, y, 60, 1, 0x000000, 0.08);
   // Sign board with a picture of what the shop sells.
   p.rect(18, 7, 28, 12, 0xfff4d6).rect(18, 7, 28, 1, 0x000000, 0.2).rect(18, 18, 28, 1, 0x000000, 0.2);
@@ -98,7 +110,9 @@ export function shop(p: PixelPainter, variant: number): void {
   p.rect(6, 30, 32, 16, TRIM).rect(7, 31, 30, 14, GLASS).px(9, 32, GLASS_HI).px(10, 33, GLASS_HI);
   for (let i = 0; i < 5; i++) p.rect(10 + i * 5, 40, 3, 4, pick(C.flowers, i + variant)); // goods on the shelf
   p.rect(7, 39, 30, 1, TRIM);
-  p.rect(44, 29, 12, ground - 29, TRIM).rect(45, 30, 10, ground - 30, GLASS).rect(49, 30, 1, ground - 30, TRIM);
+  p.rect(44, 29, 12, ground - 29, TRIM)
+    .rect(45, 30, 10, ground - 30, GLASS)
+    .rect(49, 30, 1, ground - 30, TRIM);
   p.rect(2, ground - 2, 60, 2, 0x8a8f99);
 }
 
@@ -107,16 +121,27 @@ function shopIcon(p: PixelPainter, cx: number, cy: number, variant: number): voi
   const ink = 0x3a2412;
   switch (Math.abs(variant) % 4) {
     case 0: // coffee cup with steam
-      p.rect(cx - 4, cy - 1, 7, 5, 0xffffff).rect(cx - 4, cy - 1, 7, 1, ink).rect(cx - 4, cy + 3, 7, 1, ink);
-      p.rect(cx - 5, cy - 1, 1, 5, ink).rect(cx + 3, cy - 1, 1, 5, ink).rect(cx + 4, cy, 2, 1, ink).rect(cx + 5, cy + 1, 1, 2, ink);
-      p.px(cx - 2, cy - 3, 0x9a9a9a).px(cx, cy - 4, 0x9a9a9a).px(cx - 1, cy - 2, 0x9a9a9a);
+      p.rect(cx - 4, cy - 1, 7, 5, 0xffffff)
+        .rect(cx - 4, cy - 1, 7, 1, ink)
+        .rect(cx - 4, cy + 3, 7, 1, ink);
+      p.rect(cx - 5, cy - 1, 1, 5, ink)
+        .rect(cx + 3, cy - 1, 1, 5, ink)
+        .rect(cx + 4, cy, 2, 1, ink)
+        .rect(cx + 5, cy + 1, 1, 2, ink);
+      p.px(cx - 2, cy - 3, 0x9a9a9a)
+        .px(cx, cy - 4, 0x9a9a9a)
+        .px(cx - 1, cy - 2, 0x9a9a9a);
       break;
     case 1: // loaf of bread
-      p.rect(cx - 6, cy - 2, 12, 5, 0xd9a05b).rect(cx - 5, cy - 3, 10, 1, 0xd9a05b).rect(cx - 6, cy + 2, 12, 1, 0xa66f32);
+      p.rect(cx - 6, cy - 2, 12, 5, 0xd9a05b)
+        .rect(cx - 5, cy - 3, 10, 1, 0xd9a05b)
+        .rect(cx - 6, cy + 2, 12, 1, 0xa66f32);
       for (let i = -3; i <= 3; i += 3) p.px(cx + i, cy - 1, 0xa66f32).px(cx + i + 1, cy - 2, 0xa66f32);
       break;
     case 2: // open book
-      p.rect(cx - 7, cy - 3, 7, 7, 0xffffff).rect(cx + 1, cy - 3, 7, 7, 0xffffff).rect(cx, cy - 3, 1, 8, ink);
+      p.rect(cx - 7, cy - 3, 7, 7, 0xffffff)
+        .rect(cx + 1, cy - 3, 7, 7, 0xffffff)
+        .rect(cx, cy - 3, 1, 8, ink);
       for (let y = -1; y < 3; y += 2) p.rect(cx - 5, cy + y, 4, 1, 0x9a9a9a).rect(cx + 3, cy + y, 4, 1, 0x9a9a9a);
       break;
     default: // pharmacy cross

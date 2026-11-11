@@ -10,7 +10,12 @@ import { C } from './palette';
 export const PINE_SIZE = [22, 42] as const;
 export function pine(p: PixelPainter): void {
   p.rect(10, 34, 3, 8, C.trunk).rect(12, 34, 1, 8, C.trunkDark);
-  const tiers: [number, number][] = [[0, 12], [8, 16], [16, 20], [24, 22]];
+  const tiers: [number, number][] = [
+    [0, 12],
+    [8, 16],
+    [16, 20],
+    [24, 22],
+  ];
   for (const [ty, th] of tiers) {
     for (let i = 0; i < th - 2; i++) {
       const half = Math.min(10, Math.floor((i + 2) / 1.6));
@@ -43,7 +48,10 @@ export function bush(p: PixelPainter): void {
 }
 
 export function tuft(p: PixelPainter, x: number, y: number): void {
-p.px(x, y, C.tuft).px(x - 1, y - 1, C.tuft).px(x + 1, y - 1, C.tuft).px(x, y - 2, C.meadowLight);
+  p.px(x, y, C.tuft)
+    .px(x - 1, y - 1, C.tuft)
+    .px(x + 1, y - 1, C.tuft)
+    .px(x, y - 2, C.meadowLight);
 }
 
 /** Blend two colors (t = 0 → a, 1 → b). */
@@ -74,15 +82,34 @@ export function wiltedOak(p: PixelPainter, wilt: number): void {
   p.disc(18, 9, 3, light).disc(12, 12, 2, light).px(10, 10, light).px(17, 6, light);
   p.dither(4, 20, 22, 4, dark);
   // Gaps in the leaves and fallen leaves on the ground.
-  for (const [x, y] of [[6, 14], [23, 18], [11, 21], [19, 21], [8, 18]]) p.px(x, y, 0x000000, 0.18 * wilt);
-  for (const [x, y] of [[6, 35], [9, 34], [22, 35], [24, 34], [19, 35]]) p.px(x, y, blend(0xb88a3e, 0x8a5a2b, wilt));
+  for (const [x, y] of [
+    [6, 14],
+    [23, 18],
+    [11, 21],
+    [19, 21],
+    [8, 18],
+  ])
+    p.px(x, y, 0x000000, 0.18 * wilt);
+  for (const [x, y] of [
+    [6, 35],
+    [9, 34],
+    [22, 35],
+    [24, 34],
+    [19, 35],
+  ])
+    p.px(x, y, blend(0xb88a3e, 0x8a5a2b, wilt));
 }
 
 /** A pine browning from the bottom up (same 22×42 size as `pine`). `wilt` 0–1. */
 export function wiltedPine(p: PixelPainter, wilt: number): void {
   if (wilt >= 1) return deadPine(p);
   p.rect(10, 34, 3, 8, C.trunk).rect(12, 34, 1, 8, C.trunkDark);
-  const tiers: [number, number][] = [[0, 12], [8, 16], [16, 20], [24, 22]];
+  const tiers: [number, number][] = [
+    [0, 12],
+    [8, 16],
+    [16, 20],
+    [24, 22],
+  ];
   tiers.forEach(([ty, th], i) => {
     // Lower tiers brown more.
     const brown = Math.min(1, wilt * (0.55 + i * 0.22));
@@ -112,13 +139,33 @@ export function deadOak(p: PixelPainter): void {
   for (let i = 0; i < 9; i++) p.px(18 + i, 17 - i, bark).px(17 + i, 17 - i, shade);
   p.rect(14, 3, 2, 15, bark).px(15, 3, shade);
   // Twigs.
-  for (const [x, y, dx, dy, n] of [[5, 10, -1, -1, 4], [8, 13, 1, -1, 3], [24, 10, 1, -1, 4], [21, 12, -1, -1, 3], [15, 6, -1, -1, 4], [15, 8, 1, -1, 4], [3, 9, 1, -1, 2]]) {
+  for (const [x, y, dx, dy, n] of [
+    [5, 10, -1, -1, 4],
+    [8, 13, 1, -1, 3],
+    [24, 10, 1, -1, 4],
+    [21, 12, -1, -1, 3],
+    [15, 6, -1, -1, 4],
+    [15, 8, 1, -1, 4],
+    [3, 9, 1, -1, 2],
+  ]) {
     for (let i = 0; i < n; i++) p.px(x + dx * i, y + dy * i, twig);
   }
   // A crack and a few last leaves.
   p.rect(15, 24, 1, 5, shade).px(14, 26, shade);
-  for (const [x, y] of [[4, 6], [26, 6], [12, 3], [21, 9]]) p.px(x, y, 0x9a6a2e);
-  for (const [x, y] of [[7, 35], [10, 34], [21, 35], [24, 35]]) p.px(x, y, 0x8a5a2b);
+  for (const [x, y] of [
+    [4, 6],
+    [26, 6],
+    [12, 3],
+    [21, 9],
+  ])
+    p.px(x, y, 0x9a6a2e);
+  for (const [x, y] of [
+    [7, 35],
+    [10, 34],
+    [21, 35],
+    [24, 35],
+  ])
+    p.px(x, y, 0x8a5a2b);
 }
 
 /** A dead pine: bare gray trunk with drooping, needle-less branches (22×42). */

@@ -111,6 +111,13 @@ class AudioManager {
     this.current = { key, player };
   }
 
+  /** Silence everything while the game is hidden (another website page), and pick up again after. */
+  setPaused(paused: boolean): void {
+    if (!this.ctx) return;
+    if (paused) void this.ctx.suspend();
+    else void this.ctx.resume();
+  }
+
   /**
    * Dip or restore the music (0–1, 1 = normal), e.g. silent under a slide's
    * own sound, or quieter next to the data center so its hum comes through.
@@ -143,7 +150,6 @@ class AudioManager {
    * away; the audio starts once it is loaded/synthesized and audio is unlocked.
    */
   sound(key: string, def: SoundDef): SoundHandle {
-    const self = this;
     let source: AudioBufferSourceNode | null = null;
     let gain: GainNode | null = null;
     let wantPlaying = false;
@@ -153,14 +159,14 @@ class AudioManager {
     let stopped = false;
 
     const start = async () => {
-      const ctx = self.ctx;
-      if (!ctx || !self.master || stopped || source) return;
-      const buffer = await self.buffer(key, def);
+      const ctx = this.ctx;
+      if (!ctx || !this.master || stopped || source) return;
+      const buffer = await this.buffer(key, def);
       if (!buffer || !wantPlaying || stopped || source) return;
       if (!gain) {
         gain = ctx.createGain();
         gain.gain.value = def.volume * level;
-        gain.connect(self.master);
+        gain.connect(this.master);
       }
       source = ctx.createBufferSource();
       source.buffer = buffer;
@@ -170,8 +176,8 @@ class AudioManager {
       source.start(0, offset % buffer.duration);
     };
     const halt = () => {
-      if (!source || !self.ctx) return;
-      offset = self.ctx.currentTime - startedAt;
+      if (!source || !this.ctx) return;
+      offset = this.ctx.currentTime - startedAt;
       source.stop();
       source.disconnect();
       source = null;
@@ -181,23 +187,23 @@ class AudioManager {
       get playing() {
         return wantPlaying;
       },
-      play() {
+      play: () => {
         if (stopped) return;
         wantPlaying = true;
         void start();
       },
-      pause() {
+      pause: () => {
         wantPlaying = false;
         halt();
       },
-      setVolume(v: number, ramp = 0.1) {
+      setVolume: (v: number, ramp = 0.1) => {
         level = v;
-        if (gain && self.ctx) gain.gain.setTargetAtTime(def.volume * v, self.ctx.currentTime, ramp);
+        if (gain && this.ctx) gain.gain.setTargetAtTime(def.volume * v, this.ctx.currentTime, ramp);
       },
-      stop(fade = 0.4) {
+      stop: (fade = 0.4) => {
         stopped = true;
         wantPlaying = false;
-        if (gain && self.ctx) gain.gain.setTargetAtTime(0, self.ctx.currentTime, fade / 3);
+        if (gain && this.ctx) gain.gain.setTargetAtTime(0, this.ctx.currentTime, fade / 3);
         window.setTimeout(halt, fade * 1000 + 50);
       },
     };

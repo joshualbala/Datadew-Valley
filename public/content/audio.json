@@ -17,6 +17,11 @@
       "_location": "The valley (game map), set by maps/valley.json → music",
       "synth": "haze",
       "volume": 0.7
+    },
+    "ending": {
+      "_location": "Ending slides (set by sequences/ending.json → music)",
+      "synth": "meadow",
+      "volume": 0.6
     }
   },
   "sounds": {

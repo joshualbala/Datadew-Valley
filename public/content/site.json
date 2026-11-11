@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "_description": "The website around the game. 'title' = the site name in the header. 'nav' = header links in order ('label' shown, 'route' = a key of 'pages'). 'home' = the page shown first. 'pages' = each page's 'title' and its 'sections', shown top to bottom. Section types: {\"type\":\"game\"} the simulation itself; {\"type\":\"text\",\"heading\":optional,\"text\":...} a paragraph (blank lines start a new paragraph); {\"type\":\"people\",\"heading\":optional} the team from about.json; {\"type\":\"bibliography\",\"heading\":optional,\"emptyMessage\":...} the entries in bibliography.json. 'smallScreen' = the notice shown on phones and small windows.",
+  "_usedIn": "Every page: header, navigation, page contents, small-screen notice",
+  "title": "Datadew Valley",
+  "nav": [
+    {
+      "label": "Simulation",
+      "route": "simulation"
+    },
+    {
+      "label": "About Us",
+      "route": "about"
+    },
+    {
+      "label": "Bibliography",
+      "route": "bibliography"
+    }
+  ],
+  "home": "simulation",
+  "pages": {
+    "simulation": {
+      "_location": "Simulation page (the game)",
+      "title": "Simulation",
+      "sections": [
+        {
+          "type": "game"
+        }
+      ]
+    },
+    "about": {
+      "_location": "About Us page",
+      "title": "About Us",
+      "sections": [
+        {
+          "type": "text",
+          "heading": "About the project",
+          "text": "PLACEHOLDER: Datadew Valley is a research project at Brown University about what it is like to live next to a data center. It invites people who use AI tools every day to spend a few minutes in the shoes of a community that hosts the infrastructure behind them.\n\nPLACEHOLDER: A second paragraph about the study, the team's goals, and how the simulation was made."
+        },
+        {
+          "type": "people",
+          "heading": "The team"
+        }
+      ]
+    },
+    "bibliography": {
+      "_location": "Annotated Bibliography page",
+      "title": "Annotated Bibliography",
+      "sections": [
+        {
+          "type": "text",
+          "heading": "Annotated Bibliography",
+          "text": "PLACEHOLDER: The research behind each pop-up in the simulation, with a short note on why it matters."
+        },
+        {
+          "type": "bibliography",
+          "emptyMessage": "No sources have been added yet."
+        }
+      ]
+    }
+  },
+  "smallScreen": {
+    "title": "Please use a computer",
+    "text": "Datadew Valley is designed for a laptop or desktop with a keyboard. Please open this page on a computer, or make your browser window larger."
+  }
+}

@@ -1,5 +1,7 @@
 import type { Illustration } from './common';
 import { construction } from './construction';
+import { screenGlow } from './screenGlow';
+import { townTogether } from './townTogether';
 import { dataCenterOpens } from './dataCenterOpens';
 import { townMeeting } from './townMeeting';
 import { valleyHome } from './valleyHome';
@@ -16,4 +18,6 @@ export const illustrations: Record<string, Illustration> = {
   'town-meeting': townMeeting,
   construction,
   'data-center-opens': dataCenterOpens,
+  'town-together': townTogether,
+  'screen-glow': screenGlow,
 };

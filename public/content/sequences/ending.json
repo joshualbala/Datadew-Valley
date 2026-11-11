@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "_description": "Ending slides, shown once every pop-up is read (see flow.json). Same format as sequences/intro.json: each slide has a 'caption' and an 'illustration' (built-in pictures: \"valley-home\", \"town-meeting\", \"construction\", \"data-center-opens\", \"town-together\" (neighbors with picture signs outside the data center), \"screen-glow\" (a laptop with an AI chat at night, the data center through the window)). 'music' = track from audio.json.",
+  "_usedIn": "Simulation page → Ending slides (after everything is read)",
+  "music": "ending",
+  "slides": [
+    {
+      "_location": "Ending slide 1",
+      "illustration": "data-center-opens",
+      "caption": "PLACEHOLDER: Alex still lives next door. The hum never stops, the river is still brown, and the bills keep coming."
+    },
+    {
+      "_location": "Ending slide 2",
+      "illustration": "town-together",
+      "caption": "PLACEHOLDER: Neighbors began meeting, sharing what they had seen, and asking the town to listen."
+    },
+    {
+      "_location": "Ending slide 3",
+      "illustration": "screen-glow",
+      "caption": "PLACEHOLDER: Data centers like this one power the AI tools many of us use every day, often far from where we live."
+    },
+    {
+      "_location": "Ending slide 4",
+      "illustration": "valley-home",
+      "caption": "PLACEHOLDER: Who pays for the answers we ask for? Take a moment to think about Datadew Valley."
+    }
+  ]
+}

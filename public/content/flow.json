@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_description": "The order of screens after the player presses Enter on the title screen. Steps run top to bottom. Step types: 'sequence' = a click-through slideshow ('sequence' is a file name in content/sequences/, without .json). 'card' = a black screen with one line of text ('text'), shown for 'holdSeconds' seconds; 'stopMusic': true fades the music out as it appears. 'map' = the walkable game map ('map' is a file name in content/maps/, without .json); 'popup' (optional) = a pop-up id from popups.json shown over the map when it opens (the controls).",
+  "_description": "The order of screens after the player presses Enter on the title screen. Steps run top to bottom. Step types: 'sequence' = a click-through slideshow ('sequence' is a file name in content/sequences/, without .json). 'card' = a black screen with one line of text ('text'), shown for 'holdSeconds' seconds; 'stopMusic': true fades the music out as it appears. 'map' = the walkable game map ('map' is a file name in content/maps/, without .json); 'popup' (optional) = a pop-up id from popups.json shown over the map when it opens (the controls); 'until': \"complete\" = move on once every pop-up that counts toward completion has been read. After the last step the game returns to the title screen and clears progress for the next person.",
   "_usedIn": "Simulation page → everything between the title screen and the game",
   "steps": [
     {
@@ -19,7 +19,20 @@
       "_location": "After '6 months later': the valley, with the controls pop-up on top",
       "type": "map",
       "map": "valley",
-      "popup": "controls"
+      "popup": "controls",
+      "until": "complete"
+    },
+    {
+      "_location": "After everything is read: the ending slides",
+      "type": "sequence",
+      "sequence": "ending"
+    },
+    {
+      "_location": "Black screen after the ending slides; then back to the title (progress is cleared for the next person)",
+      "type": "card",
+      "text": "Thank you for playing.",
+      "holdSeconds": 3,
+      "stopMusic": true
     }
   ]
 }

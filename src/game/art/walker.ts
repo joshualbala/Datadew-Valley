@@ -48,9 +48,12 @@ export function walker(p: PixelPainter, look: Look, facing: Facing, frame: 0 | 1
     if (style === 'ponytail') p.rect(9, 3, 1, 4, hair).px(10, 4, hair);
     p.px(4, 5, EYE).px(6, 5, EYE);
     const mouth = darker(skin, 0.45);
-    if (mood === 'happy') p.px(4, 7, mouth).px(5, 8, mouth).px(6, 7, mouth); // smile
-    else if (mood === 'sad') p.rect(4, 7, 3, 1, mouth).px(3, 8, mouth).px(7, 8, mouth); // frown: corners turned down
-    else if (mood === 'angry') p.rect(4, 7, 3, 1, mouth).px(3, 4, EYE).px(7, 4, EYE); // tight mouth, hard brows
+    if (mood === 'happy')
+      p.px(4, 7, mouth).px(5, 8, mouth).px(6, 7, mouth); // smile
+    else if (mood === 'sad')
+      p.rect(4, 7, 3, 1, mouth).px(3, 8, mouth).px(7, 8, mouth); // frown: corners turned down
+    else if (mood === 'angry')
+      p.rect(4, 7, 3, 1, mouth).px(3, 4, EYE).px(7, 4, EYE); // tight mouth, hard brows
     else p.rect(4, 7, 3, 1, mouth); // neutral: flat mouth
   }
 

@@ -24,7 +24,11 @@ export interface RunningWidget {
   update?(px: number, py: number): void;
 }
 
-type WidgetFactory<T extends HudWidget['type']> = (scene: Phaser.Scene, cfg: Extract<HudWidget, { type: T }>, ctx: HudContext) => RunningWidget;
+type WidgetFactory<T extends HudWidget['type']> = (
+  scene: Phaser.Scene,
+  cfg: Extract<HudWidget, { type: T }>,
+  ctx: HudContext,
+) => RunningWidget;
 
 const PX = 3; // HUD art scale
 
@@ -39,7 +43,15 @@ function panel(g: Phaser.GameObjects.Graphics, x: number, y: number, w: number, 
  * Open the widget's pop-up and count it as read. A bouncing "!" badge sits on
  * the widget until then, like the markers on the map.
  */
-function makeReadable(scene: Phaser.Scene, cfg: HudWidget, target: Phaser.GameObjects.Container, badgeX: number, badgeY: number, before?: () => void, after?: () => void) {
+function makeReadable(
+  scene: Phaser.Scene,
+  cfg: HudWidget,
+  target: Phaser.GameObjects.Container,
+  badgeX: number,
+  badgeY: number,
+  before?: () => void,
+  after?: () => void,
+) {
   let badge: Phaser.GameObjects.Image | null = null;
   if (!progress.isRead(cfg.id)) {
     badge = scene.add.image(badgeX, badgeY, 'marker-bang').setScale(0.75);
@@ -75,7 +87,13 @@ export const widgetTypes: { [T in HudWidget['type']]: WidgetFactory<T> } = {
     panel(g, 0, 0, size + 8, size + 8);
     const face = scene.add.image(4, 4, key).setOrigin(0);
     const name = scene.add
-      .text((size + 8) / 2, size + 22, cfg.name, { fontFamily: FONT, fontSize: '28px', color: CREAM_TEXT, stroke: '#5b3a1e', strokeThickness: 5 })
+      .text((size + 8) / 2, size + 22, cfg.name, {
+        fontFamily: FONT,
+        fontSize: '28px',
+        color: CREAM_TEXT,
+        stroke: '#5b3a1e',
+        strokeThickness: 5,
+      })
       .setOrigin(0.5);
     const box = scene.add.container(20, 16, [g, face, name]).setScrollFactor(0).setDepth(ctx.depth);
     box.setInteractive(new Phaser.Geom.Rectangle(-4, -4, size + 16, size + 44), Phaser.Geom.Rectangle.Contains);
@@ -97,11 +115,18 @@ export const widgetTypes: { [T in HudWidget['type']]: WidgetFactory<T> } = {
     const h = 60;
     const g = scene.add.graphics();
     panel(g, 0, 0, w, h);
-    const icon = makeTexture(scene, 'hud-speaker', 14, 12, (p) => {
-      const c = 0xfff4d6;
-      p.rect(1, 4, 3, 4, c).rect(4, 3, 1, 6, c).rect(5, 2, 1, 8, c).rect(6, 1, 1, 10, c);
-      p.rect(9, 4, 1, 4, c).rect(11, 2, 1, 2, c).rect(12, 4, 1, 4, c).rect(11, 8, 1, 2, c);
-    }, PX);
+    const icon = makeTexture(
+      scene,
+      'hud-speaker',
+      14,
+      12,
+      (p) => {
+        const c = 0xfff4d6;
+        p.rect(1, 4, 3, 4, c).rect(4, 3, 1, 6, c).rect(5, 2, 1, 8, c).rect(6, 1, 1, 10, c);
+        p.rect(9, 4, 1, 4, c).rect(11, 2, 1, 2, c).rect(12, 4, 1, 4, c).rect(11, 8, 1, 2, c);
+      },
+      PX,
+    );
     const speaker = scene.add.image(10, h / 2, icon).setOrigin(0, 0.5);
     const bars = scene.add.graphics();
     const colors = [0x7bd17b, 0xb8e05a, 0xf2c230, 0xf28c28, 0xe23b3b];
@@ -114,7 +139,10 @@ export const widgetTypes: { [T in HudWidget['type']]: WidgetFactory<T> } = {
       }
     };
     draw(0);
-    const box = scene.add.container(20, GAME_HEIGHT - 20 - h, [g, speaker, bars]).setScrollFactor(0).setDepth(ctx.depth);
+    const box = scene.add
+      .container(20, GAME_HEIGHT - 20 - h, [g, speaker, bars])
+      .setScrollFactor(0)
+      .setDepth(ctx.depth);
     box.setInteractive(new Phaser.Geom.Rectangle(-4, -4, w + 8, h + 8), Phaser.Geom.Rectangle.Contains);
     if (box.input) box.input.cursor = 'pointer';
 

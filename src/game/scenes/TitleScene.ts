@@ -2,15 +2,7 @@ import Phaser from 'phaser';
 import { getContent } from '../../content/store';
 import { audio } from '../audio/audioManager';
 import { FONT, GAME_WIDTH } from '../constants';
-import {
-  ART_PX,
-  AW,
-  DATA_CENTER_X,
-  GROUND_Y,
-  makeSceneryTextures,
-  paintBackground,
-  riverCenter,
-} from '../art/titleScenery';
+import { ART_PX, AW, DATA_CENTER_X, GROUND_Y, makeSceneryTextures, paintBackground, riverCenter } from '../art/titleScenery';
 import { flow } from '../flow';
 import { addMuteButton } from '../ui/muteButton';
 import { WOOD, WOOD_DARK, WOOD_LIGHT } from '../ui/theme';
@@ -105,8 +97,12 @@ export class TitleScene extends Phaser.Scene {
       g.fillStyle(WOOD_LIGHT, hover ? 0 : 1).fillRect(-w / 2, -h / 2, w, 6);
       g.fillStyle(WOOD_DARK, 0.35).fillRect(-w / 2, h / 2 - 6, w, 6);
       // Wood grain + nails.
-      g.fillStyle(WOOD_DARK, 0.25).fillRect(-w / 2 + 12, -6, 60, 2).fillRect(20, 12, 70, 2);
-      g.fillStyle(WOOD_DARK).fillRect(-w / 2 + 6, -h / 2 + 10, 4, 4).fillRect(w / 2 - 10, -h / 2 + 10, 4, 4);
+      g.fillStyle(WOOD_DARK, 0.25)
+        .fillRect(-w / 2 + 12, -6, 60, 2)
+        .fillRect(20, 12, 70, 2);
+      g.fillStyle(WOOD_DARK)
+        .fillRect(-w / 2 + 6, -h / 2 + 10, 4, 4)
+        .fillRect(w / 2 - 10, -h / 2 + 10, 4, 4);
     };
     draw(false);
 
@@ -120,7 +116,10 @@ export class TitleScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    const button = this.add.container(x, y, [g, txt]).setSize(w + 12, h + 12).setDepth(UI_DEPTH);
+    const button = this.add
+      .container(x, y, [g, txt])
+      .setSize(w + 12, h + 12)
+      .setDepth(UI_DEPTH);
     button.setInteractive({ useHandCursor: true });
     button.on('pointerover', () => {
       draw(true);
@@ -249,7 +248,11 @@ export class TitleScene extends Phaser.Scene {
       loop: true,
       callback: () => {
         const sx = Phaser.Utils.Array.GetRandom(stacks);
-        const puff = this.add.image(S(sx), S(top - 32), 'puff').setDepth(2).setAlpha(0.8).setScale(0.6);
+        const puff = this.add
+          .image(S(sx), S(top - 32), 'puff')
+          .setDepth(2)
+          .setAlpha(0.8)
+          .setScale(0.6);
         this.tweens.add({
           targets: puff,
           y: puff.y - Phaser.Math.Between(40, 70),

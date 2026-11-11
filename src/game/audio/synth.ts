@@ -102,17 +102,20 @@ export class SynthPlayer implements MusicPlayer {
     this.out.gain.cancelScheduledValues(now);
     this.out.gain.setValueAtTime(this.out.gain.value, now);
     this.out.gain.linearRampToValueAtTime(0, now + fadeSeconds);
-    window.setTimeout(() => {
-      for (const s of this.sources) {
-        try {
-          s.stop();
-        } catch {
-          /* already stopped */
+    window.setTimeout(
+      () => {
+        for (const s of this.sources) {
+          try {
+            s.stop();
+          } catch {
+            /* already stopped */
+          }
         }
-      }
-      this.sources.clear();
-      this.out.disconnect();
-    }, fadeSeconds * 1000 + 100);
+        this.sources.clear();
+        this.out.disconnect();
+      },
+      fadeSeconds * 1000 + 100,
+    );
   }
 
   private scheduleLoop(): void {
@@ -168,7 +171,9 @@ export class SynthPlayer implements MusicPlayer {
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(gain, t + 0.004);
     g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
-    this.osc('sine', freq, t, t + decay + 0.05).connect(g).connect(dest);
+    this.osc('sine', freq, t, t + decay + 0.05)
+      .connect(g)
+      .connect(dest);
   }
 
   private voice(inst: Instrument, freq: number, t: number, dur: number, vol: number): void {
@@ -228,7 +233,9 @@ export class SynthPlayer implements MusicPlayer {
         for (const [mult, g] of partials) {
           const pg = ctx.createGain();
           pg.gain.value = g;
-          this.osc('sine', freq * mult, t, end).connect(pg).connect(env);
+          this.osc('sine', freq * mult, t, end)
+            .connect(pg)
+            .connect(env);
         }
         env.gain.linearRampToValueAtTime(vol, t + 0.005);
         env.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
@@ -275,7 +282,9 @@ export class SynthPlayer implements MusicPlayer {
         const hp = ctx.createBiquadFilter();
         hp.type = 'highpass';
         hp.frequency.value = 6500;
-        this.noise(t, t + 0.12).connect(hp).connect(env);
+        this.noise(t, t + 0.12)
+          .connect(hp)
+          .connect(env);
         env.gain.linearRampToValueAtTime(vol, t + 0.008);
         env.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
         env.connect(this.dry);
@@ -303,7 +312,9 @@ export class SynthPlayer implements MusicPlayer {
         const filter = ctx.createBiquadFilter();
         filter.type = 'lowpass';
         filter.frequency.value = 420;
-        this.osc('triangle', freq, t, t + dur + 0.5).connect(filter).connect(env);
+        this.osc('triangle', freq, t, t + dur + 0.5)
+          .connect(filter)
+          .connect(env);
         env.gain.linearRampToValueAtTime(vol, t + 0.03);
         env.gain.linearRampToValueAtTime(vol * 0.6, t + 0.4);
         env.gain.setValueAtTime(vol * 0.6, t + dur);
@@ -345,9 +356,12 @@ export class FilePlayer implements MusicPlayer {
     this.out.gain.cancelScheduledValues(now);
     this.out.gain.setValueAtTime(this.out.gain.value, now);
     this.out.gain.linearRampToValueAtTime(0, now + fadeSeconds);
-    window.setTimeout(() => {
-      this.el.pause();
-      this.out.disconnect();
-    }, fadeSeconds * 1000 + 100);
+    window.setTimeout(
+      () => {
+        this.el.pause();
+        this.out.disconnect();
+      },
+      fadeSeconds * 1000 + 100,
+    );
   }
 }

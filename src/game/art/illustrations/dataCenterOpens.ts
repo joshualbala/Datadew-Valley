@@ -41,7 +41,15 @@ export const dataCenterOpens: Illustration = {
     hills(p, 116, 4, 18, 4, 0x6b6c48, 0x777852);
     // Tired, yellowed grass with bare dirt where the ground was torn up.
     meadow(p, GROUND, rng, { base: 0x8a8550, dark: 0x74703f, light: 0xa19b64, tuft: 0x66622f });
-    for (const [x, y, rx, ry] of [[112, 134, 16, 5], [236, 152, 26, 6], [350, 150, 20, 5], [60, 160, 14, 4], [150, 160, 18, 4], [396, 158, 16, 4], [300, 128, 14, 3]]) {
+    for (const [x, y, rx, ry] of [
+      [112, 134, 16, 5],
+      [236, 152, 26, 6],
+      [350, 150, 20, 5],
+      [60, 160, 14, 4],
+      [150, 160, 18, 4],
+      [396, 158, 16, 4],
+      [300, 128, 14, 3],
+    ]) {
       dirtPatch(p, x, y, rx, ry, rng);
     }
 
@@ -54,7 +62,11 @@ export const dataCenterOpens: Illustration = {
       if (y % 8 < 4) p.px(TOWER_X - half + ((y % 8) * half) / 2, y, 0x3a3a4a);
     }
     p.rect(TOWER_X - 10, tTop + 6, 21, 1, 0x3a3a4a).rect(TOWER_X - 7, tTop + 14, 15, 1, 0x3a3a4a);
-    for (const [ax, ay] of [[TOWER_X - 10, tTop + 6], [TOWER_X + 10, tTop + 6], [TOWER_X + 7, tTop + 14]]) {
+    for (const [ax, ay] of [
+      [TOWER_X - 10, tTop + 6],
+      [TOWER_X + 10, tTop + 6],
+      [TOWER_X + 7, tTop + 14],
+    ]) {
       for (let x = 0; x <= IW - ax; x++) {
         const t = x / (IW - ax);
         p.px(ax + x, Math.round(ay + 10 * Math.sin(t * Math.PI) + t * 20), 0x2a2a38, 0.8);
@@ -63,7 +75,14 @@ export const dataCenterOpens: Illustration = {
     }
 
     // Cleared ground: stumps, one lonely pine. (The data center itself is a sprite, see animate.)
-    for (const [x, y] of [[160, 150], [410, 156], [116, 146], [176, 160], [130, 158]]) stump(p, x, y);
+    for (const [x, y] of [
+      [160, 150],
+      [410, 156],
+      [116, 146],
+      [176, 160],
+      [130, 158],
+    ])
+      stump(p, x, y);
     pine(p.at(150, GROUND - 48));
 
     // Alex's cottage, closer than anyone would want.
@@ -114,16 +133,30 @@ function lightUp(stage: IllustrationStage, x: number, y: number, scale: number):
   }
   // Glowing glass doors and logo panel.
   at('illu-dc-door', 20, 20, (p) => p.rect(0, 0, 9, 20, 0xbfe9ff, 0.8).rect(11, 0, 9, 20, 0xbfe9ff, 0.8), 13, top + 26);
-  const logo = at('illu-dc-logo', 18, 12, (p) => {
-    p.rect(0, 0, 18, 12, 0x3d8bff).disc(7, 7, 2, 0xffffff).disc(10, 6, 3, 0xffffff).rect(5, 7, 9, 2, 0xffffff);
-  }, 46, top + 24);
+  const logo = at(
+    'illu-dc-logo',
+    18,
+    12,
+    (p) => {
+      p.rect(0, 0, 18, 12, 0x3d8bff).disc(7, 7, 2, 0xffffff).disc(10, 6, 3, 0xffffff).rect(5, 7, 9, 2, 0xffffff);
+    },
+    46,
+    top + 24,
+  );
   stage.scene.tweens.add({ targets: logo, alpha: 0.75, duration: 1500, yoyo: true, repeat: -1 });
   // Floodlight cones on the fence.
   for (const fx of [-8, 128 + 4]) {
-    const cone = at('illu-flood', 12, 14, (p) => {
-      for (let i = 0; i < 14; i++) p.rect(6 - Math.floor(i / 2.5), i, 1 + Math.floor(i / 2.5) * 2, 1, 0xfff2b0, 0.35);
-      p.rect(4, 0, 4, 2, 0xfff2b0);
-    }, fx - 5, -16);
+    const cone = at(
+      'illu-flood',
+      12,
+      14,
+      (p) => {
+        for (let i = 0; i < 14; i++) p.rect(6 - Math.floor(i / 2.5), i, 1 + Math.floor(i / 2.5) * 2, 1, 0xfff2b0, 0.35);
+        p.rect(4, 0, 4, 2, 0xfff2b0);
+      },
+      fx - 5,
+      -16,
+    );
     cone.setAlpha(0.9);
   }
   // Steam from the stacks.

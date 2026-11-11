@@ -12,8 +12,7 @@ const fileMeta = {
 };
 
 /** Wrap a file's schema so it also requires the shared metadata fields. */
-export const contentFile = <T extends z.ZodRawShape>(shape: T) =>
-  z.object({ ...fileMeta, ...shape });
+export const contentFile = <T extends z.ZodRawShape>(shape: T) => z.object({ ...fileMeta, ...shape });
 
 export const UiSchema = contentFile({
   start: z.object({
@@ -100,6 +99,8 @@ export const MapStepSchema = z.object({
   map: z.string().min(1),
   /** Optional pop-up id (popups.json) shown over the map when it first opens, e.g. the controls. */
   popup: z.string().optional(),
+  /** "complete" = move on to the next flow step once everything counting toward completion is read. */
+  until: z.enum(['complete']).optional(),
 });
 
 export const FlowStepSchema = z.discriminatedUnion('type', [SequenceStepSchema, CardStepSchema, MapStepSchema]);
@@ -212,7 +213,10 @@ export const HotspotSchema = z.object({
    * of the hotspot: it glows in `highlightColor` when Alex is near any of them.
    */
   area: z.string().optional(),
-  highlightColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).default('#fff2a8'),
+  highlightColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .default('#fff2a8'),
 });
 export type Hotspot = z.infer<typeof HotspotSchema>;
 
@@ -311,3 +315,56 @@ export const HudSchema = contentFile({
   widgets: z.array(HudWidgetSchema),
 });
 export type HudContent = z.infer<typeof HudSchema>;
+
+// ------------------------------------------------------------------ website
+
+/**
+ * A page is a list of sections. To add a section type: add its schema here,
+ * add it to SectionSchema, then add a renderer in src/site/sections.ts.
+ */
+export const SectionSchema = z.discriminatedUnion('type', [
+  /** The game itself (the Simulation page). */
+  z.object({ type: z.literal('game') }),
+  z.object({ type: z.literal('text'), heading: z.string().default(''), text: z.string().min(1) }),
+  /** The people in about.json. */
+  z.object({ type: z.literal('people'), heading: z.string().default('') }),
+  /** The entries in bibliography.json (or `emptyMessage` when there are none). */
+  z.object({ type: z.literal('bibliography'), heading: z.string().default(''), emptyMessage: z.string().min(1) }),
+]);
+export type Section = z.infer<typeof SectionSchema>;
+
+export const SiteSchema = contentFile({
+  title: z.string().min(1),
+  /** Links in the header, in order; `route` is a key of `pages`. */
+  nav: z.array(z.object({ label: z.string().min(1), route: z.string().min(1) })).min(1),
+  /** The page shown when the address has no route (#/). */
+  home: z.string().min(1),
+  pages: z.record(z.string(), z.object({ title: z.string().min(1), sections: z.array(SectionSchema).min(1) })),
+  /** Shown instead of the site on phones and small windows. */
+  smallScreen: z.object({ title: z.string().min(1), text: z.string().min(1) }),
+});
+export type SiteContent = z.infer<typeof SiteSchema>;
+
+export const AboutSchema = contentFile({
+  people: z.array(
+    z.object({
+      name: z.string().min(1),
+      role: z.string().default(''),
+      /** Path to a photo inside public/ (e.g. "assets/team/jane.jpg"); leave "" for a pixel avatar. */
+      image: z.string().default(''),
+      description: z.string().default(''),
+    }),
+  ),
+});
+export type AboutContent = z.infer<typeof AboutSchema>;
+
+export const BibliographySchema = contentFile({
+  entries: z.array(
+    z.object({
+      citation: z.string().min(1),
+      annotation: z.string().default(''),
+      url: z.string().optional(),
+    }),
+  ),
+});
+export type BibliographyContent = z.infer<typeof BibliographySchema>;

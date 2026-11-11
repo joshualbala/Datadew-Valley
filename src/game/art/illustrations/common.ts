@@ -131,11 +131,15 @@ export function meadow(p: PixelPainter, top: number, rng: Rng, colors: GrassColo
   for (let x = 0; x < area.w; x++) p.rect(x, top + Math.round(2 * Math.sin(x / 17)), 1, area.h, colors.base);
   p.dither(0, top + 4, area.w, 2, colors.dark);
   const density = (area.w * (area.h - top)) / 40000;
-  for (let i = 0; i < 1100 * density; i++) p.px(rng.between(0, area.w), rng.between(top + 3, area.h), rng.pick([colors.light, colors.dark]));
+  for (let i = 0; i < 1100 * density; i++)
+    p.px(rng.between(0, area.w), rng.between(top + 3, area.h), rng.pick([colors.light, colors.dark]));
   for (let i = 0; i < 170 * density; i++) {
     const x = rng.between(0, area.w);
     const y = rng.between(top + 6, area.h - 1);
-    p.px(x, y, colors.tuft).px(x - 1, y - 1, colors.tuft).px(x + 1, y - 1, colors.tuft).px(x, y - 2, colors.light);
+    p.px(x, y, colors.tuft)
+      .px(x - 1, y - 1, colors.tuft)
+      .px(x + 1, y - 1, colors.tuft)
+      .px(x, y - 2, colors.light);
   }
 }
 
@@ -150,7 +154,8 @@ export function dirtPatch(p: PixelPainter, cx: number, cy: number, rx: number, r
     p.rect(cx - half, cy + y, half * 2, 1, dirt);
     p.px(cx - half, cy + y, dark);
   }
-  for (let i = 0; i < rx * ry * 0.4; i++) p.px(cx + rng.between(-rx + 2, rx - 2), cy + rng.between(-ry + 1, ry - 1), rng.pick([dark, light]));
+  for (let i = 0; i < rx * ry * 0.4; i++)
+    p.px(cx + rng.between(-rx + 2, rx - 2), cy + rng.between(-ry + 1, ry - 1), rng.pick([dark, light]));
 }
 
 /** Centerline of the river along the bottom of a default-size picture. */
@@ -244,7 +249,9 @@ export function cottage(p: PixelPainter, x: number, y: number, litWindows = fals
   p.disc(x + w / 2, top - 6, 3, C.stone).disc(x + w / 2, top - 6, 2, glass);
   // Door.
   const dx = x + COTTAGE_DOOR_X;
-  p.rect(dx, y - 15, 9, 15, C.doorDark).rect(dx + 1, y - 14, 7, 14, C.door).px(dx + 6, y - 7, C.gold);
+  p.rect(dx, y - 15, 9, 15, C.doorDark)
+    .rect(dx + 1, y - 14, 7, 14, C.door)
+    .px(dx + 6, y - 7, C.gold);
   // Windows with flower boxes.
   for (const wx of [x + 6, x + 31]) {
     p.rect(wx - 1, top + 5, 9, 9, C.stone).rect(wx, top + 6, 7, 7, glass);
@@ -267,7 +274,9 @@ export function picketFence(p: PixelPainter, x0: number, x1: number, y: number, 
   for (let x = x0; x < x1; x++) if (!open(x)) p.px(x, y - 5, PICKET_RAIL).px(x, y - 2, PICKET_RAIL);
   for (let x = x0; x <= x1; x += 4) {
     if (open(x) || open(x + 1)) continue;
-    p.rect(x, y - 7, 2, 7, PICKET).px(x + 1, y - 7, PICKET_SHADE).px(x, y - 8, PICKET);
+    p.rect(x, y - 7, 2, 7, PICKET)
+      .px(x + 1, y - 7, PICKET_SHADE)
+      .px(x, y - 8, PICKET);
   }
 }
 
@@ -363,7 +372,8 @@ export function person(p: PixelPainter, look: Look, pose: Pose = 'stand', mood: 
 
   // Face: dot eyes and a tiny mouth.
   p.px(4, 5, eye).px(6, 5, eye);
-  if (mood === 'happy') p.px(4, 7, mouth).px(5, 8, mouth).px(6, 7, mouth); // small smile
+  if (mood === 'happy')
+    p.px(4, 7, mouth).px(5, 8, mouth).px(6, 7, mouth); // small smile
   else p.rect(4, 7, 3, 1, mouth); // neutral / worried / upset: a short flat line
 
   // Shoulders and body.

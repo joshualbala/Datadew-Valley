@@ -13,6 +13,7 @@ async function boot(): Promise<void> {
     await document.fonts.load('16px "Jersey 10"');
     setContent(await loadContent());
     audio.setSfxVolume(getContent().audio.sfxVolume);
+    audio.setSoundDefs(getContent().audio.sounds);
     const game = startGame('game');
     startSite(game);
     // Development only: lets automated checks reach the game (never included in the built site).

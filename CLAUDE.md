@@ -53,4 +53,6 @@ Vite + TypeScript + Phaser 3.90 (not Phaser 4), Zod 4 for content validation, Vi
 
 **Debug view:** `?debug=1` labels the map (`MapScene.addDebugLabels`). The header's wood texture is painted in code (`src/site/wood.ts`).
 
+**Use a real recording:** put it in `public/assets/audio/` and set `"file": "assets/audio/<name>.mp3"` on the entry in `audio.json` (tests check the file exists). Looping sounds are trimmed and crossfaded automatically (`makeSeamlessLoop` in `src/game/audio/fileSounds.ts`). A `sounds` entry named like a sound effect (`cough`, `step`, `open`, `close`, `read`) replaces that synthesized effect; with `"clips": true` the file is split at quiet gaps (`findClips`) and one random piece (≤ 2.5 s) plays per call.
+
 **Add music:** either drop an mp3/ogg in `public/assets/audio/` and add a track with `"file": "assets/audio/x.mp3"` in `audio.json`, or write a synth song in `src/game/audio/songs/<name>.ts` (see `meadow.ts`), register it in `songs/index.ts`, and use `"synth": "<name>"`. Play it from a scene with `audio.playMusic('<trackKey>', getContent().audio.music.<trackKey>)`.

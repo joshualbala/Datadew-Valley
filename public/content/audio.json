@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
-  "_description": "Music, sounds and effects volume. 'music': each track uses EITHER 'synth' (a built-in melody in src/game/audio/songs/: \"picnic\" = upbeat and cozy, \"meadow\" = slow and warm, \"overcast\" = slow, gray and wistful, \"haze\" = sparse and hazy) OR 'file' (an mp3/ogg inside public/, e.g. \"assets/audio/title.mp3\"); 'volume' is 0 to 1. 'sounds': recordings used by the game (e.g. the data center noise), each with EITHER 'synth' (built-in, see src/game/audio/recordings/: \"datacenter\" = fans, electrical buzz and high whine; \"construction\" = engine, reversing beeper, hammers, jackhammer) OR 'file' (a real recording, e.g. \"assets/audio/datacenter.mp3\"). 'sfxVolume' (0 to 1) = small sound effects (pop-up chimes, footsteps); 0 turns them off. 'alexCoughSeconds' = [min, max]: Alex coughs at a random moment in that range, again and again, while on the map ([0, 0] turns it off).",
+  "_description": "Music, sounds and effects volume. 'music': each track uses EITHER 'synth' (a built-in melody in src/game/audio/songs/: \"picnic\" = upbeat and cozy, \"meadow\" = slow and warm, \"overcast\" = slow, gray and wistful, \"haze\" = sparse and hazy) OR 'file' (an mp3/ogg inside public/, e.g. \"assets/audio/into_music.mp3\"); music always loops; 'volume' is 0 to 1. 'sounds': recordings used by the game ('volume' 0 to 1, or up to 2 to boost a quiet recording), each with EITHER 'synth' (built-in, see src/game/audio/recordings/: \"datacenter\", \"construction\") OR 'file' (a real recording in public/assets/audio/). Looping sounds (data center hum, construction) are trimmed and crossfaded automatically so even a very short file loops smoothly. A sound named like a sound effect (\"cough\", \"step\", \"open\", \"close\", \"read\") replaces that built-in effect with the file. Add \"clips\": true when the file holds many separate sounds in a row (like a series of coughs): the game splits it at the quiet gaps and plays one random piece (max 2.5 s) each time, instead of the whole file. 'sfxVolume' (0 to 1) = small sound effects (pop-up chimes, footsteps, coughs); 0 turns them off. 'alexCoughSeconds' = [min, max]: Alex coughs at a random moment in that range, again and again, while on the map ([0, 0] turns it off).",
   "_usedIn": "Simulation page → Start screen, Title screen, Intro slides, the valley (music, data center noise, sound effects)",
   "music": {
     "title": {
-      "_location": "Starts after the first click ('Click anywhere to begin') and plays on the opening page.",
-      "synth": "picnic",
+      "_location": "Starts after the first click ('Click anywhere to begin') and plays on the opening page. Same song as 'intro', so it keeps playing without restarting when the intro slides begin.",
+      "file": "assets/audio/into_music.mp3",
       "volume": 0.75
     },
     "intro": {
       "_location": "Intro slides (the title music crossfades into this). Fades out at '6 months later'.",
-      "synth": "overcast",
+      "file": "assets/audio/into_music.mp3",
       "volume": 0.75
     },
     "valley": {
@@ -26,14 +26,20 @@
   },
   "sounds": {
     "datacenter": {
-      "_location": "The noise pop-up's player and the background hum near the data center",
-      "synth": "datacenter",
-      "volume": 0.8
+      "_location": "The noise pop-up's player and the background hum near the data center (short recording, looped seamlessly)",
+      "file": "assets/audio/datacenter_sound.mp3",
+      "volume": 2.0
     },
     "construction": {
       "_location": "Intro slide 3 (construction): replaces the music for that slide",
-      "synth": "construction",
+      "file": "assets/audio/construction_site_sounds.mp3",
       "volume": 0.6
+    },
+    "cough": {
+      "_location": "Alex coughing on the map (every alexCoughSeconds) and neighbors coughing as Alex walks past. The file has many coughs; one random cough fit (max 2.5 s) plays each time.",
+      "file": "assets/audio/cough_sound.mp3",
+      "volume": 0.6,
+      "clips": true
     }
   },
   "sfxVolume": 0.5,

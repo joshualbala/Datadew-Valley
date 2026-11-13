@@ -1,3 +1,4 @@
+import { findClips, makeSeamlessLoop, type Clip } from './fileSounds';
 import { recordings } from './recordings';
 import { playSfx, type SfxName, type SfxOptions } from './sfx';
 import { songs } from './songs';
@@ -13,6 +14,8 @@ export interface SoundDef {
   synth?: string;
   file?: string;
   volume: number;
+  /** The file holds many separate sounds (e.g. a series of coughs): play one random piece each time. */
+  clips?: boolean;
 }
 
 /** A looping sound that can be paused, resumed, faded and stopped. */
@@ -46,10 +49,14 @@ class AudioManager {
   /** All music goes through this, so it can be dipped without touching other sounds. */
   private musicBus: GainNode | null = null;
   private musicLevel = 1;
-  private current: { key: string; player: MusicPlayer } | null = null;
+  private current: { key: string; source: string; player: MusicPlayer } | null = null;
   private pending: { key: string; track: MusicTrack } | null = null;
   private listeners = new Set<(muted: boolean) => void>();
   private buffers = new Map<string, Promise<AudioBuffer | null>>();
+  private loopBuffers = new Map<string, Promise<AudioBuffer | null>>();
+  private clips = new Map<string, { list: Clip[]; last: number }>();
+  /** audio.json → sounds. An entry named like a sound effect (e.g. "cough") with a "file" replaces the built-in effect. */
+  private soundDefs: Record<string, SoundDef> = {};
   private sfxGain: GainNode | null = null;
   private sfxVolume = 0.5;
   muted = readMuted();
@@ -88,9 +95,18 @@ class AudioManager {
     }
   }
 
-  /** Start a music track (no-op if it is already playing). Waits for unlock if needed. */
+  /**
+   * Start a music track (no-op if it is already playing). Waits for unlock if needed.
+   * If the new track uses the same file/song as the one playing (e.g. title and intro
+   * share a song), the music simply continues instead of restarting.
+   */
   playMusic(key: string, track: MusicTrack): void {
     if (this.current?.key === key) return;
+    const source = track.file ? `file:${track.file}` : `synth:${track.synth}`;
+    if (this.current?.source === source) {
+      this.current.key = key;
+      return;
+    }
     if (!this.ctx || !this.master) {
       this.pending = { key, track };
       return;
@@ -108,7 +124,7 @@ class AudioManager {
       player = new SynthPlayer(this.ctx, this.musicBus!, song, track.volume);
     }
     player.start();
-    this.current = { key, player };
+    this.current = { key, source, player };
   }
 
   /** Silence everything while the game is hidden (another website page), and pick up again after. */
@@ -134,6 +150,11 @@ class AudioManager {
     if (this.sfxGain) this.sfxGain.gain.value = volume;
   }
 
+  /** Sounds from audio.json; sound effects with a matching "file" entry use the recording instead of the synth. */
+  setSoundDefs(defs: Record<string, SoundDef>): void {
+    this.soundDefs = defs;
+  }
+
   /** Play a small effect (pop-up chime, footstep, cough). Silent until audio is unlocked. */
   sfx(name: SfxName, opts?: SfxOptions): void {
     if (!this.ctx || !this.master || this.sfxVolume === 0) return;
@@ -142,7 +163,46 @@ class AudioManager {
       this.sfxGain.gain.value = this.sfxVolume;
       this.sfxGain.connect(this.master);
     }
-    playSfx(this.ctx, this.sfxGain, name, opts);
+    const def = this.soundDefs[name];
+    if (def?.file) void this.playFileSfx(name, def, opts ?? {});
+    else playSfx(this.ctx, this.sfxGain, name, opts);
+  }
+
+  /** One-shot from a file: the whole file, or (with "clips") one random piece of it. */
+  private async playFileSfx(key: string, def: SoundDef, opts: SfxOptions): Promise<void> {
+    const buffer = await this.buffer(key, def);
+    const ctx = this.ctx;
+    if (!buffer || !ctx || !this.sfxGain) return;
+    let clip: Clip = { start: 0, duration: buffer.duration };
+    if (def.clips) {
+      let entry = this.clips.get(key);
+      if (!entry) {
+        entry = { list: findClips(buffer.getChannelData(0), buffer.sampleRate), last: -1 };
+        this.clips.set(key, entry);
+      }
+      if (entry.list.length) {
+        // Random piece, never the same one twice in a row.
+        let i = Math.floor(Math.random() * entry.list.length);
+        if (i === entry.last && entry.list.length > 1) i = (i + 1) % entry.list.length;
+        entry.last = i;
+        clip = entry.list[i];
+      }
+    }
+    // Real recordings sound odd when pitched far, so voice differences are kept subtle.
+    const rate = 1 + ((opts.pitch ?? 1) - 1) * 0.5;
+    const length = clip.duration / rate;
+    const vol = Math.min(1.5, def.volume * (opts.volume ?? 1));
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.playbackRate.value = rate;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.01);
+    g.gain.setValueAtTime(vol, t + Math.max(0.01, length - 0.12));
+    g.gain.linearRampToValueAtTime(0, t + length);
+    src.connect(g).connect(this.sfxGain);
+    src.start(t, clip.start, clip.duration);
   }
 
   /**
@@ -161,7 +221,7 @@ class AudioManager {
     const start = async () => {
       const ctx = this.ctx;
       if (!ctx || !this.master || stopped || source) return;
-      const buffer = await this.buffer(key, def);
+      const buffer = await this.loopBuffer(key, def);
       if (!buffer || !wantPlaying || stopped || source) return;
       if (!gain) {
         gain = ctx.createGain();
@@ -207,6 +267,24 @@ class AudioManager {
         window.setTimeout(halt, fade * 1000 + 50);
       },
     };
+  }
+
+  /** Like buffer(), but for files: silent edges trimmed and ends crossfaded so it loops without a gap. */
+  private loopBuffer(key: string, def: SoundDef): Promise<AudioBuffer | null> {
+    if (!def.file) return this.buffer(key, def);
+    let p = this.loopBuffers.get(key);
+    if (!p) {
+      p = this.buffer(key, def).then((raw) => {
+        if (!raw || !this.ctx) return raw;
+        const channels = Array.from({ length: raw.numberOfChannels }, (_, c) => raw.getChannelData(c));
+        const looped = makeSeamlessLoop(channels, raw.sampleRate);
+        const out = this.ctx.createBuffer(looped.length, looped[0].length, raw.sampleRate);
+        looped.forEach((data, c) => out.copyToChannel(data as Float32Array<ArrayBuffer>, c));
+        return out;
+      });
+      this.loopBuffers.set(key, p);
+    }
+    return p;
   }
 
   /** Decode a file or synthesize a built-in recording once, then reuse it. */

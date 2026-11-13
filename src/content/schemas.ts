@@ -59,7 +59,10 @@ export const SoundSchema = z
   .object({
     synth: z.string().optional(),
     file: z.string().optional(),
-    volume: z.number().min(0).max(1).default(0.8),
+    /** 0–1 normally; up to 2 boosts a quiet recording. */
+    volume: z.number().min(0).max(2).default(0.8),
+    /** The file holds many separate sounds (e.g. a series of coughs): play one random piece each time. */
+    clips: z.boolean().default(false),
   })
   .refine((t) => Boolean(t.synth) !== Boolean(t.file), {
     message: 'Each sound needs exactly one of "synth" or "file"',

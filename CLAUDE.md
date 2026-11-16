@@ -53,6 +53,14 @@ Vite + TypeScript + Phaser 3.90 (not Phaser 4), Zod 4 for content validation, Vi
 
 **Debug view:** `?debug=1` labels the map (`MapScene.addDebugLabels`). The header's wood texture is painted in code (`src/site/wood.ts`).
 
+**Add a person to talk to:** add them to `public/content/characters.json` (`name`, `title`, `look` = a `CHARACTERS` outfit, `mood`, `lines: [{ from: "alex" | "them", text }]`, `after` = note/citation blocks) and place them on a map with `{ "character": "<key>", "x", "y" }` in its `npcs`. They stand still, wear that look and mood, get a speech-bubble marker automatically (`src/content/characters.ts` → `characterHotspots`, pop-up id `character:<key>`), and count toward completion as `talk-<key>`. Chat speed: `characters.json` → `timing`. The chat block renderer is in `src/ui/blocks/index.ts` (styles `.block-chat`); portraits support `healthy` / `sickly` / `sad`. New outfits go in `CHARACTERS` (`src/game/art/illustrations/common.ts`; `Look` supports `hat`, `tie`, `straps`). Walkers path around people who stand still. Starting from the title screen resets progress (`TitleScene.start`).
+
+**One pop-up, several places:** a hotspot's `alsoAt: [{x, y}]` adds extra tiles to it (e.g. the well on the river bank opens the river pop-up).
+
+**Energy bar / hint arrow:** the energy bar is the `energy` HUD widget (`hud.json`; drain rates, source, floor, slow-walk threshold), stored with progress in `src/state/progress.ts`. The "stuck?" arrow is `src/game/map/hintArrow.ts`, set by `ui.json` → `map.hintAfterSeconds` / `hintLabel`.
+
+**Words in pictures:** `src/game/art/tinyFont.ts` paints a 3×5 pixel font. Protest signs use `signHolder` (`illustrations/signs.ts`); their words come from the slide's `"signs"` in the sequence file (passed to `animate` as `stage.signs`).
+
 **Use a real recording:** put it in `public/assets/audio/` and set `"file": "assets/audio/<name>.mp3"` on the entry in `audio.json` (tests check the file exists). Looping sounds are trimmed and crossfaded automatically (`makeSeamlessLoop` in `src/game/audio/fileSounds.ts`). A `sounds` entry named like a sound effect (`cough`, `step`, `open`, `close`, `read`) replaces that synthesized effect; with `"clips": true` the file is split at quiet gaps (`findClips`) and one random piece (≤ 2.5 s) plays per call.
 
 **Add music:** either drop an mp3/ogg in `public/assets/audio/` and add a track with `"file": "assets/audio/x.mp3"` in `audio.json`, or write a synth song in `src/game/audio/songs/<name>.ts` (see `meadow.ts`), register it in `songs/index.ts`, and use `"synth": "<name>"`. Play it from a scene with `audio.playMusic('<trackKey>', getContent().audio.music.<trackKey>)`.

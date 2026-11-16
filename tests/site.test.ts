@@ -35,7 +35,7 @@ describe('pop-ups are all reachable', () => {
     const hud = parseContent('hud.json', read('hud.json'), HudSchema);
     const used = new Set<string>([
       ...flow.steps.flatMap((s) => (s.type === 'map' && s.popup ? [s.popup] : [])),
-      ...hud.widgets.map((w) => w.popup),
+      ...hud.widgets.flatMap((w) => (w.popup ? [w.popup] : [])),
       ...readdirSync(resolve(root, 'public/content/maps')).flatMap((f) =>
         parseContent(`maps/${f}`, read(`maps/${f}`), MapSchema).hotspots.map((h) => h.popup),
       ),

@@ -39,15 +39,6 @@
   },
   "hotspots": [
     {
-      "_location": "Inside: the rows of GPU racks",
-      "id": "gpu-racks",
-      "popup": "gpu-racks",
-      "x": 7,
-      "y": 7,
-      "area": "gpu-rack",
-      "highlightColor": "#9dff3a"
-    },
-    {
       "_location": "Inside: the municipal water tank by the cooling units",
       "id": "cooling-water-usage",
       "popup": "cooling-water-usage",
@@ -76,7 +67,8 @@
         "x": 37,
         "y": 9
       },
-      "hint": "Press E to leave"
+      "hint": "Press E to leave",
+      "sign": "Exit"
     }
   ],
   "npcs": [

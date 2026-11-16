@@ -141,7 +141,7 @@ export class SequenceScene extends Phaser.Scene {
       const grid = gridOf(illustration);
       const key = makeTexture(this, `illustration-${slide.illustration}`, grid.w, grid.h, (p) => illustration.paint(p), grid.scale);
       this.layer.add(this.add.image(PIC_X, PIC_Y, key).setOrigin(0));
-      illustration.animate?.(this.stageFor(this.layer, grid.scale));
+      illustration.animate?.(this.stageFor(this.layer, grid.scale, slide.signs));
     } else {
       console.warn(`Unknown illustration "${slide.illustration}" in sequences/${this.sequenceName}.json`);
     }
@@ -187,9 +187,10 @@ export class SequenceScene extends Phaser.Scene {
     }
   }
 
-  private stageFor(layer: Phaser.GameObjects.Container, PX: number): IllustrationStage {
+  private stageFor(layer: Phaser.GameObjects.Container, PX: number, signs: string[] = []): IllustrationStage {
     return {
       scene: this,
+      signs,
       sprite: (key, w, h, draw, x, y) => {
         // Same drawing at a different zoom needs its own texture.
         const scaled = `${key}@${PX}`;

@@ -1,6 +1,63 @@
 {
   "schemaVersion": 1,
-  "_description": "Entries on the Annotated Bibliography page, in order. Empty by default (the page then shows the 'emptyMessage' from site.json). Each entry: 'citation' (the full reference), 'annotation' (a short note on what it says and why it matters), 'url' (optional link). Example: {\"citation\": \"Author, A. (2024). Title. Journal.\", \"annotation\": \"...\", \"url\": \"https://...\"}",
-  "_usedIn": "Annotated Bibliography page",
-  "entries": []
+  "_description": "Entries on the Bibliography page, in order. Empty by default (the page then shows the 'emptyMessage' from site.json). Each entry: 'citation' (the full reference), 'annotation' (a short note on what it says and why it matters), 'url' (optional link: only the matching part of the citation, the web address or DOI, becomes the clickable link). Example: {\"citation\": \"Author, A. (2024). Title. Journal.\", \"annotation\": \"...\", \"url\": \"https://...\"}",
+  "_usedIn": "Bibliography page",
+  "entries": [
+    {
+      "citation": "Admin, V. D. (2020, March 20). How Much Energy Do Data Centers Really Use? Energy Innovation. https://energyinnovation.org/expert-voice/how-much-energy-do-data-centers-really-use/",
+      "url": "https://energyinnovation.org/expert-voice/how-much-energy-do-data-centers-really-use/"
+    },
+    {
+      "citation": "Berglund, L., & Miles, J. (2025, March). DETROIT’S FIGHTS FOR COMMUNITY BENEFITS: Exploring the Challenges and Strategies of Securing Community Benefits Agreements in a Legacy City. https://www.researchgate.net/publication/389884280_DETROIT'S_FIGHTS_FOR_COMMUNITY_BENEFITS_Exploring_the_Challenges_and_Strategies_of_Securing_Community_Benefits_Agreements_in_a_Legacy_City",
+      "url": "https://www.researchgate.net/publication/389884280_DETROIT'S_FIGHTS_FOR_COMMUNITY_BENEFITS_Exploring_the_Challenges_and_Strategies_of_Securing_Community_Benefits_Agreements_in_a_Legacy_City"
+    },
+    {
+      "citation": "Chen, Y., Wang, S., Senga, J. R. L., White, A. S., Wong, A. Y. H., Freese, L. M., Bell, M. L., & Selin, N. E. (2026). Air quality and health impacts of Data Center electricity demand in the United States. https://eartharxiv.org/repository/view/13648/",
+      "url": "https://eartharxiv.org/repository/view/13648/"
+    },
+    {
+      "citation": "George, Babu. (2026). Health Consequences of Large Data Centers: Air Pollution, Noise, Water Use, and Environmental Justice. 10.31235/osf.io/cnwyb_v1.",
+      "url": "https://doi.org/10.31235/osf.io/cnwyb_v1"
+    },
+    {
+      "citation": "Gour, N., Ortiz, L., & Maibach, E. (2026). Health implications of the rapid rise of data centers in Virginia: An exploratory assessment. Frontiers in Climate, 8. https://doi.org/10.3389/fclim.2026.1648912",
+      "url": "https://doi.org/10.3389/fclim.2026.1648912"
+    },
+    {
+      "citation": "Grumke, K. (2026, September 24). How data center noise is different from regular noise pollution, according to a St. Louis scientist. STLPR. https://www.stlpr.org/health-science-environment/2026-09-24/st-louis-scientist-data-center-noise-pollution",
+      "url": "https://www.stlpr.org/health-science-environment/2026-09-24/st-louis-scientist-data-center-noise-pollution"
+    },
+    {
+      "citation": "Gupta, U., Kim, Y. G., Lee, S., Tse, J., Lee, H.-H. S., Wei, G.-Y., Brooks, D., & Wu, C.-J. (2021). Chasing Carbon: The Elusive Environmental Footprint of Computing. 2021 IEEE International Symposium on High-Performance Computer Architecture (HPCA), 854–867. https://doi.org/10.1109/HPCA51647.2021.00076",
+      "url": "https://doi.org/10.1109/HPCA51647.2021.00076"
+    },
+    {
+      "citation": "Kim, J., Kim, J., Sovacool, B. K., Griffiths, S., Bazilian, M., Creutzig, F., Furszyfer Del Rio, D. D., Agrawala, M., Choi, M., & Debnath, R. (2026). Reviewing the socio-technical dynamics of AI, data centers and digitalization on energy and the environment. Renewable and Sustainable Energy Reviews, 234, 116861. https://doi.org/10.1016/j.rser.2026.116861",
+      "url": "https://doi.org/10.1016/j.rser.2026.116861"
+    },
+    {
+      "citation": "Koedinger, Kim, Jia, McLaughlin & Bier (2015), “Learning is Not a Spectator Sport: Doing is Better than Watching for Learning from a MOOC.” Proceedings of ACM Learning @ Scale, 111–120. https://dl.acm.org/doi/epdf/10.1145/2724660.2724681",
+      "url": "https://dl.acm.org/doi/epdf/10.1145/2724660.2724681"
+    },
+    {
+      "citation": "Kollar, J., & Danielak, S. (2026). Planning Conflict in the Age of AI Infrastructure: Governing Data Center Growth in the United States. Journal of the American Planning Association, 1–14. https://doi.org/10.1080/01944363.2026.2720635",
+      "url": "https://doi.org/10.1080/01944363.2026.2720635"
+    },
+    {
+      "citation": "Li, P., Yang, J., Islam, M. A., & Ren, S. (2025). Making AI less “thirsty”: Uncovering and addressing the secret water footprint of AI models (arXiv:2304.03271v5) [Preprint]. arXiv. https://doi.org/10.48550/arXiv.2304.03271",
+      "url": "https://doi.org/10.48550/arXiv.2304.03271"
+    },
+    {
+      "citation": "Martin, E., & Peskoe, A. (2025). Extracting profits from the public: How utility ratepayers are paying for Big Tech’s power. Harvard Law School Environmental and Energy Law Program. https://eelp.law.harvard.edu/wp-content/uploads/2025/03/Harvard-ELI-Extracting-Profits-from-the-Public.pdf",
+      "url": "https://eelp.law.harvard.edu/wp-content/uploads/2025/03/Harvard-ELI-Extracting-Profits-from-the-Public.pdf"
+    },
+    {
+      "citation": "Oliver, N., Twentyman, K., & Howie, K. (2025). ‘Everybody’s voice is important’: Using translational simulation as a component of change management. Advances in Simulation, 10(1), 38. https://doi.org/10.1186/s41077-025-00364-0",
+      "url": "https://doi.org/10.1186/s41077-025-00364-0"
+    },
+    {
+      "citation": "O’Donnell, J., & Crownhart, C. (2025, May 20). We did the math on AI’s energy footprint. Here’s the story you haven’t heard. MIT Technology Review. https://www.technologyreview.com/2025/05/20/1116327/ai-energy-usage-climate-footprint-big-tech/",
+      "url": "https://www.technologyreview.com/2025/05/20/1116327/ai-energy-usage-climate-footprint-big-tech/"
+    }
+  ]
 }

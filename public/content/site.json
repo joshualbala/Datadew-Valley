@@ -35,7 +35,12 @@
         {
           "type": "text",
           "heading": "About the project",
-          "text": "PLACEHOLDER: Datadew Valley is a research project at Brown University about what it is like to live next to a data center. It invites people who use AI tools every day to spend a few minutes in the shoes of a community that hosts the infrastructure behind them.\n\nPLACEHOLDER: A second paragraph about the study, the team's goals, and how the simulation was made."
+          "text": "Datadew Valley is a research project at Brown University about what it is like to live next to a data center. It invites people who use AI tools every day to spend a few minutes in the shoes of a community that hosts the infrastructure behind them.\n\nPLACEHOLDER: A second paragraph about the study, the team's goals, and how the simulation was made."
+        },
+        {
+          "type": "text",
+          "heading": "A note on Datadew Valley",
+          "text": "Datadew Valley is not a real place, and it is not modeled on any single town. It is a composite: each part of the story, from the brown well water and rising bills, draws from real reporting and research about communities living next to data centers across the United States. The people you meet, like Alex, Ruth and Councilmember Johnson, are fictional, but their experiences reflect reality. The sources for each fact are listed at the bottom of the pop-up where it appears."
         },
         {
           "type": "people",
@@ -44,16 +49,12 @@
       ]
     },
     "bibliography": {
-      "_location": "Annotated Bibliography page",
-      "title": "Annotated Bibliography",
+      "_location": "Bibliography page",
+      "title": "Bibliography",
       "sections": [
         {
-          "type": "text",
-          "heading": "Annotated Bibliography",
-          "text": "PLACEHOLDER: The research behind each pop-up in the simulation, with a short note on why it matters."
-        },
-        {
           "type": "bibliography",
+          "heading": "Bibliography",
           "emptyMessage": "No sources have been added yet."
         }
       ]

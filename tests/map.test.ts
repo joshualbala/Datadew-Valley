@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { contentCollections } from '../src/content/files';
 import { collectionFiles, parseContent, type FileContent } from '../src/content/loader';
-import { AudioSchema, FlowSchema, HudSchema, MapSchema, PopupsSchema, type MapContent } from '../src/content/schemas';
+import { AudioSchema, FlowSchema, HudSchema, MapSchema, PopupsSchema, isReadableWidget, type MapContent } from '../src/content/schemas';
 import { portrait } from '../src/game/art/portrait';
 import { recordings } from '../src/game/audio/recordings';
 import { PixelPainter, type PixelTarget } from '../src/game/art/pixel';
@@ -119,7 +119,7 @@ describe('HUD, bills and sounds', () => {
 
   it('every HUD widget opens an existing pop-up and has a unique id', () => {
     const ids = new Set(maps.flatMap(([, m]) => m.hotspots.map((h) => h.id)));
-    for (const w of hud.widgets) {
+    for (const w of hud.widgets.filter(isReadableWidget)) {
       expect(popups.popups, `widget "${w.id}"`).toHaveProperty(w.popup);
       expect(ids.has(w.id), `"${w.id}" is also a hotspot id`).toBe(false);
       ids.add(w.id);
@@ -203,6 +203,51 @@ describe('neighbors and slide sounds', () => {
       if (key !== 'sequences') continue;
       const seq = parseContent(file, read(file), contentCollections.sequences.schema);
       for (const slide of seq.slides) if (slide.sound) expect(audioFile.sounds).toHaveProperty(slide.sound);
+    }
+  });
+});
+
+describe('objects sit on the ground around them', () => {
+  it('a bench on the plaza gets sidewalk, a tree on cleared land gets dirt, a car keeps its driveway', async () => {
+    const { effectiveGrounds } = await import('../src/game/map/kinds');
+    const grid = ['---', '-e-', '---', ':::', ':T:', ':::', '...', '.CC', '...'];
+    const legend: Record<string, string> = { '-': 'sidewalk', e: 'bench', ':': 'dirt', T: 'tree-pine', '.': 'grass', C: 'car' };
+    const kindAt = (x: number, y: number) => legend[grid[y]?.[x] ?? ''] ?? '';
+    const groundAt = effectiveGrounds(3, grid.length, kindAt);
+    expect(groundAt(1, 1)).toBe('sidewalk');
+    expect(groundAt(1, 4)).toBe('dirt');
+    expect(groundAt(1, 7)).toBe('sidewalk');
+  });
+});
+
+describe('pixel font', () => {
+  it('measures text and paints only inside the measured box', async () => {
+    const { tinyText, tinyTextWidth } = await import('../src/game/art/tinyFont');
+    expect(tinyTextWidth('AB')).toBe(7);
+    expect(tinyTextWidth('A B')).toBe(9);
+    const painted: [number, number][] = [];
+    const target: PixelTarget = {
+      fillStyle: () => target,
+      fillRect: (x: number, y: number) => (painted.push([x, y]), target),
+    } as unknown as PixelTarget;
+    tinyText(new PixelPainter(target, 1), 'VOTE', 0, 0, 0);
+    expect(painted.length).toBeGreaterThan(20);
+    for (const [x, y] of painted) {
+      expect(x).toBeLessThan(tinyTextWidth('VOTE'));
+      expect(y).toBeLessThan(5);
+    }
+  });
+});
+
+describe('characters', () => {
+  it('every character placed on a map exists in characters.json and has a built-in look', async () => {
+    const { CharactersSchema } = await import('../src/content/schemas');
+    const { CHARACTERS } = await import('../src/game/art/illustrations/common');
+    const chars = parseContent('characters.json', read('characters.json'), CharactersSchema);
+    for (const [key, c] of Object.entries(chars.characters)) expect(c.look, `${key}.look`).toBeLessThan(CHARACTERS.length);
+    for (const f of readdirSync(resolve(contentDir, 'maps'))) {
+      const map = parseContent(`maps/${f}`, read(`maps/${f}`), MapSchema);
+      for (const n of map.npcs) if (n.character) expect(chars.characters, `maps/${f}`).toHaveProperty(n.character);
     }
   });
 });

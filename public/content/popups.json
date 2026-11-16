@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_description": "Every pop-up window, by id. Map '!' markers, HUD buttons and the flow open pop-ups by these ids. Each pop-up: 'title', 'body' (a list of blocks, shown top to bottom), optional 'button' (label of the closing button; default from ui.json). Block types: {\"type\":\"text\",\"text\":...} a paragraph; {\"type\":\"stat\",\"value\":\"5M gal\",\"label\":...} a big number; {\"type\":\"citation\",\"text\":...,\"url\":optional} a source line; {\"type\":\"image\",\"illustration\":\"valley-home\",\"caption\":optional} a built-in picture (same names as the intro slides); {\"type\":\"bill\",\"items\":[{\"label\":\"Electricity\",\"before\":95,\"after\":160}],\"totalLabel\":\"You now owe\",\"total\":optional (default = sum of the increases),\"currency\":\"$\",\"beforeLabel\",\"afterLabel\",\"note\"} a bill with increases in red; {\"type\":\"audioPlayer\",\"sound\":\"datacenter\",\"label\":...,\"autoplay\":true|false} play/pause and volume for a sound in audio.json; {\"type\":\"keys\",\"rows\":[{\"keys\":[\"W\",\"A\"],\"label\":...}]} keyboard keys with what they do (write \"↑\", \"↓\", \"←\", \"→\" for arrow keys; they are drawn as arrows).",
+  "_description": "Every pop-up window, by id. Map '!' markers, HUD buttons and the flow open pop-ups by these ids. Each pop-up: 'title', 'body' (a list of blocks, shown top to bottom), optional 'button' (label of the closing button; default from ui.json). Block types: {\"type\":\"text\",\"text\":...} a paragraph; {\"type\":\"stat\",\"value\":\"5M gal\",\"label\":...} a big number; {\"type\":\"citation\",\"text\":...,\"url\":optional} a source line; {\"type\":\"chat\",\"with\":{\"name\":\"Ruth\",\"character\":0},\"lines\":[{\"from\":\"alex\"|\"them\",\"text\":...}]} a conversation: Alex's face on the left, theirs on the right (character 0 = farmer, 1 = council member), messages appearing one at a time (used by people you talk to); {\"type\":\"image\",\"illustration\":\"valley-home\",\"caption\":optional} a built-in picture (same names as the intro slides); {\"type\":\"bill\",\"items\":[{\"label\":\"Electricity\",\"before\":95,\"after\":160}],\"totalLabel\":\"You now owe\",\"total\":optional (default = sum of the increases),\"currency\":\"$\",\"beforeLabel\",\"afterLabel\",\"note\"} a bill with increases in red; {\"type\":\"audioPlayer\",\"sound\":\"datacenter\",\"label\":...,\"autoplay\":true|false} play/pause and volume for a sound in audio.json; {\"type\":\"keys\",\"rows\":[{\"keys\":[\"W\",\"A\"],\"label\":...}]} keyboard keys with what they do (write \"↑\", \"↓\", \"←\", \"→\" for arrow keys; they are drawn as arrows).",
   "_usedIn": "Simulation page → pop-ups over the game (controls, '!' markers, later HUD buttons)",
   "popups": {
     "controls": {
@@ -53,60 +53,31 @@
       ],
       "button": "Start exploring"
     },
-    "vegetation-loss": {
-      "_location": "Valley: '!' on the cleared land beside the data center",
-      "title": "PLACEHOLDER: Where the woods were",
-      "body": [
-        {
-          "type": "text",
-          "text": "PLACEHOLDER: Acres of forest were cleared to build the data center. The trees that shaded the river and sheltered birds are now stumps."
-        },
-        {
-          "type": "stat",
-          "value": "PLACEHOLDER: 40 acres",
-          "label": "of forest cleared"
-        },
-        {
-          "type": "citation",
-          "text": "PLACEHOLDER (Author, Year)"
-        }
-      ]
-    },
-    "community": {
-      "_location": "Valley: '!' in the town plaza next to the well",
-      "title": "PLACEHOLDER: The town",
-      "body": [
-        {
-          "type": "text",
-          "text": "PLACEHOLDER: The data center promised jobs, but once it was built it needed only a few dozen workers. Neighbors talk about the noise, the trucks and their bills."
-        },
-        {
-          "type": "citation",
-          "text": "PLACEHOLDER (Author, Year)"
-        }
-      ]
-    },
     "river-contamination": {
-      "_location": "Valley: the river (it glows when Alex is near); '!' beside Alex's side of the river",
-      "title": "PLACEHOLDER: The river",
+      "_location": "Valley: the river and the well on its bank (they glow when Alex is near); '!' beside Alex's side of the river",
+      "title": "The river",
       "body": [
         {
           "type": "text",
-          "text": "PLACEHOLDER: Since the data center opened, the river has turned a murky light brown. Wastewater and runoff from the site drain into it, and neighbors no longer let their kids swim here."
+          "text": "Since the data center opened, the river has become noticeably murkier. Data center construction can send muddy runoff into nearby waterways, while some cooling systems produce wastewater containing concentrated salts and chemicals that can cause harmful water quality."
+        },
+        {
+          "type": "text",
+          "text": "Community members have always relied on the well for drinking water. Now they are worried about contamination from wastewater."
         },
         {
           "type": "citation",
-          "text": "PLACEHOLDER (Author, Year)"
+          "text": "Gour et al., 2026"
         }
       ]
     },
     "bills": {
       "_location": "Valley: Alex's mailbox (the red '-$'), in front of the cottage",
-      "title": "PLACEHOLDER: This month's bills",
+      "title": "This month's bills",
       "body": [
         {
           "type": "text",
-          "text": "PLACEHOLDER: Data centers use huge amounts of electricity and water, and local utility prices went up to pay for new power lines and water supply."
+          "text": "Electricity and water bills keep climbing as nearby data centers place growing demands on local resources. Data centers accounted for nearly 4% of U.S. electricity demand in 2023, and their cooling systems can strain local water supplies."
         },
         {
           "type": "bill",
@@ -126,133 +97,103 @@
             }
           ],
           "totalLabel": "You now owe",
-          "note": "PLACEHOLDER: more than before, every month"
+          "note": "more than before, every month"
         },
         {
           "type": "citation",
-          "text": "PLACEHOLDER (Author, Year)"
+          "text": "Chen et al., 2026"
         }
       ]
     },
     "air-quality-smog": {
       "_location": "Valley: '!' east of the data center, in the smog",
-      "title": "PLACEHOLDER: The air",
+      "title": "The air",
       "body": [
         {
           "type": "text",
-          "text": "PLACEHOLDER: Backup diesel generators and constant power demand put pollution into the air. On still days a haze hangs over the valley."
-        },
-        {
-          "type": "stat",
-          "value": "PLACEHOLDER: 2×",
-          "label": "more asthma visits nearby"
+          "text": "Data centers contribute both carbon emissions and environmental pollutants, causing detrimental effects on human health. Emissions primarily come from the construction, infrastructure and hardware manufacturing of the data center systems. Emissions from backup generators and power plants can contribute to respiratory and cardiovascular diseases in individuals located near the data centers."
         },
         {
           "type": "citation",
-          "text": "PLACEHOLDER (Author, Year)"
+          "text": "George, 2026"
+        },
+        {
+          "type": "citation",
+          "text": "Gupta et al., 2021"
         }
       ]
     },
     "individual-health": {
       "_location": "HUD: clicking Alex's portrait or name (top-left)",
-      "title": "PLACEHOLDER: How Alex feels",
+      "title": "How Alex feels",
       "body": [
         {
           "type": "text",
-          "text": "PLACEHOLDER: Alex sleeps badly with the constant hum, gets headaches and coughs more on smoggy days. Worry about bills and the river weighs on them too."
-        },
-        {
-          "type": "text",
-          "text": "PLACEHOLDER: Physical and mental health effects of living near a data center."
+          "text": "Living near the data center has had immense effects on Alex’s health. He has developed an ongoing cough and has disrupted sleep from the ongoing hum from the data center. Additionally financial stress has caused Alex to fall into mental detriment."
         },
         {
           "type": "citation",
-          "text": "PLACEHOLDER (Author, Year)"
+          "text": "George, 2026"
+        },
+        {
+          "type": "citation",
+          "text": "Martin and Peskoe, 2025"
         }
       ]
     },
     "noise-pollution": {
       "_location": "HUD: clicking the speaker button (bottom-left); the recording starts playing",
-      "title": "PLACEHOLDER: The sound of a data center",
+      "title": "The sound of a data center",
       "body": [
         {
           "type": "audioPlayer",
           "sound": "datacenter",
           "label": "Listen: what it sounds like next to a data center",
-          "autoplay": true
+          "autoplay": false
         },
         {
           "type": "text",
-          "text": "PLACEHOLDER: Cooling fans and transformers run day and night. Neighbors describe a low hum and a high whine they can hear even indoors."
+          "text": "The noise of a data center often sounds like a high pitched hum, overpowering other sound frequencies and causing immense distress to those who live nearby. This noise can negatively contribute to the well-being of health, increasing cardiovascular risk and cognitive functioning."
         },
         {
           "type": "citation",
-          "text": "PLACEHOLDER (Author, Year)"
-        }
-      ]
-    },
-    "gpu-racks": {
-      "_location": "Inside the data center: '!' on the GPU racks",
-      "title": "PLACEHOLDER: The GPU racks",
-      "body": [
-        {
-          "type": "text",
-          "text": "PLACEHOLDER: These racks are full of GPUs, the chips that train and run AI models. They run hot, day and night, and each rack can draw as much power as dozens of homes."
-        },
-        {
-          "type": "text",
-          "text": "PLACEHOLDER: Building the hardware and the building itself also takes a lot of energy, before a single question is answered."
-        },
-        {
-          "type": "stat",
-          "value": "PLACEHOLDER: 40 kW",
-          "label": "per rack, around the clock"
-        },
-        {
-          "type": "citation",
-          "text": "PLACEHOLDER (Author, Year)"
+          "text": "Grumke, 2026"
         }
       ]
     },
     "cooling-water-usage": {
       "_location": "Inside the data center: '!' on the municipal water tank",
-      "title": "PLACEHOLDER: Water for cooling",
+      "title": "Water for cooling",
       "body": [
         {
           "type": "text",
-          "text": "PLACEHOLDER: All that heat has to go somewhere. Cooling systems evaporate huge amounts of water to keep the machines from overheating."
+          "text": "Almost all the electricity used from data centers turns into heat. Many data centers use cooling towers that evaporate freshwater to release this heat, consuming thousands of liters of water every hour."
         },
         {
           "type": "text",
-          "text": "PLACEHOLDER: Data centers use treated municipal water, the same water that comes out of residents' taps, because it has fewer minerals that could scale or damage the cooling equipment."
-        },
-        {
-          "type": "stat",
-          "value": "PLACEHOLDER: 5 million gallons",
-          "label": "of water a day"
+          "text": "In 2023, one major technology company’s data centers alone consumed over 23 billion liters of freshwater for cooling, nearly 80% of which was clean enough to drink."
         },
         {
           "type": "citation",
-          "text": "PLACEHOLDER (Author, Year)"
+          "text": "Li et al., 2025"
         }
       ]
     },
     "electricity-usage": {
       "_location": "Inside the data center: '!' on the power cabinets",
-      "title": "PLACEHOLDER: The power it takes",
+      "title": "The power it takes",
       "body": [
         {
           "type": "text",
-          "text": "PLACEHOLDER: This room feeds the whole building. The data center uses as much electricity as a small city, so the utility had to build new power lines and plants."
-        },
-        {
-          "type": "stat",
-          "value": "PLACEHOLDER: 100 MW",
-          "label": "enough for about 80,000 homes"
+          "text": "Servers and coolers account for the majority of energy consumption by data centers, followed by storage drives and network devices. These systems run 24/7 and thus their energy use is immense. With growing use of this infrastructure comes increased demand for energy and more strain on people like Alex."
         },
         {
           "type": "citation",
-          "text": "PLACEHOLDER (Author, Year)"
+          "text": "O’Donnell and Crownhart, 2025"
+        },
+        {
+          "type": "citation",
+          "text": "Masanet and Lei, 2020"
         }
       ]
     }

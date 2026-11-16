@@ -18,6 +18,9 @@ export const UiSchema = contentFile({
   start: z.object({
     prompt: z.string().min(1),
     soundNote: z.string().default(''),
+    /** Warning about loud sounds, shown in a box on the start screen ("" hides it). */
+    noiseWarningTitle: z.string().default(''),
+    noiseWarning: z.string().default(''),
   }),
   title: z.object({
     heading: z.string().min(1),
@@ -36,8 +39,21 @@ export const UiSchema = contentFile({
     /** Shown after the first click on the Reset button; a second click resets. */
     confirm: z.string().min(1),
   }),
+  /** Conversations with characters (characters.json). */
+  chat: z
+    .object({
+      alexName: z.string().default('Alex'),
+      skipHint: z.string().default('Click the chat to show it all'),
+    })
+    .default({ alexName: 'Alex', skipHint: 'Click the chat to show it all' }),
   map: z.object({
     interactHint: z.string().min(1),
+    /** Shown above a person you can talk to when Alex is close. */
+    talkHint: z.string().default('Press E to talk'),
+    /** After this many seconds without finding anything new, an arrow points toward something unread (0 = never). */
+    hintAfterSeconds: z.number().min(0).default(45),
+    /** Small label next to that arrow. */
+    hintLabel: z.string().default('Something to see this way'),
     /** "{read}" and "{total}" are replaced with numbers. */
     progress: z.string().min(1),
   }),
@@ -120,6 +136,8 @@ export const SlideSchema = z.object({
   caption: z.string().min(1),
   /** Optional sound (audio.json → sounds) that replaces the music while this slide shows. */
   sound: z.string().optional(),
+  /** Words on the signs people hold in this picture (pictures that have signs use them in order). Short: up to 2 lines of 8 letters, "|" starts line 2. */
+  signs: z.array(z.string().min(1)).default([]),
 });
 
 export const SequenceSchema = contentFile({
@@ -173,7 +191,28 @@ export const KeysBlockSchema = z.object({
   rows: z.array(z.object({ keys: z.array(z.string().min(1)).min(1), label: z.string().min(1) })).min(1),
 });
 
+/**
+ * A conversation between Alex (left) and someone else (right): messages appear
+ * one at a time, with a "typing" bubble first, like a chat.
+ */
+export const ChatBlockSchema = z.object({
+  type: z.literal('chat'),
+  /** Who Alex talks with: the name under their face, and their built-in look (CHARACTERS: 0 = farmer, 1 = council member). */
+  with: z.object({
+    name: z.string().min(1),
+    character: z.number().int().min(0),
+    /** Their face in the chat: "sad" (default), "angry" or "neutral". */
+    mood: z.enum(['sad', 'angry', 'neutral']).default('sad'),
+  }),
+  alexName: z.string().default('Alex'),
+  /** The conversation in order; "from" is "alex" or "them". */
+  lines: z.array(z.object({ from: z.enum(['alex', 'them']), text: z.string().min(1) })).min(1),
+  /** Small note under the chat while it is still playing. */
+  skipHint: z.string().default('Click the chat to show it all'),
+});
+
 export const BlockSchema = z.discriminatedUnion('type', [
+  ChatBlockSchema,
   TextBlockSchema,
   ImageBlockSchema,
   StatBlockSchema,
@@ -197,6 +236,48 @@ export const PopupsSchema = contentFile({
 });
 export type PopupsContent = z.infer<typeof PopupsSchema>;
 
+/**
+ * People Alex can talk to (public/content/characters.json). Each one's name,
+ * look, mood and conversation live here; a map places them with
+ * { "character": "<key>", "x", "y" } in its "npcs", and a speech bubble to talk
+ * to them appears automatically.
+ */
+export const CharacterSchema = z.object({
+  /** Short name under their face in the chat. */
+  name: z.string().min(1),
+  /** Heading of the conversation pop-up, e.g. "Ruth, a farmer". */
+  title: z.string().min(1),
+  /** Built-in outfit (CHARACTERS in src/game/art/illustrations/common.ts): 0 = farmer, 1 = council member. */
+  look: z.number().int().min(0),
+  /** Face on the map and in the chat: "sad", "angry" or "neutral". */
+  mood: z.enum(['sad', 'angry', 'neutral']).default('sad'),
+  /** Label of the closing button. */
+  button: z.string().optional(),
+  /** The conversation, in order: "from" is "alex" or "them". */
+  lines: z.array(z.object({ from: z.enum(['alex', 'them']), text: z.string().min(1) })).min(1),
+  /** Blocks shown under the conversation (a note, citations), same types as in popups.json. */
+  after: z.array(BlockSchema).default([]),
+  /** Counts toward "x / N read". Default true. */
+  countsTowardCompletion: z.boolean().default(true),
+});
+export type Character = z.infer<typeof CharacterSchema>;
+
+export const CharactersSchema = contentFile({
+  /** How fast conversations play (milliseconds). */
+  timing: z
+    .object({
+      /** "Typing…" time before a message: base + perLetter × its length, at most max. */
+      typingBase: z.number().min(0).default(900),
+      typingPerLetter: z.number().min(0).default(22),
+      typingMax: z.number().min(0).default(3200),
+      /** Pause after a message before the next person starts typing. */
+      pause: z.number().min(0).default(1200),
+    })
+    .default({ typingBase: 900, typingPerLetter: 22, typingMax: 3200, pause: 1200 }),
+  characters: z.record(z.string(), CharacterSchema),
+});
+export type CharactersContent = z.infer<typeof CharactersSchema>;
+
 // ------------------------------------------------------------------ maps
 
 export const HotspotSchema = z.object({
@@ -209,13 +290,15 @@ export const HotspotSchema = z.object({
   y: z.number().int().min(0),
   /** Counts toward "x / N read" and the ending. Default true. */
   countsTowardCompletion: z.boolean().default(true),
-  /** What floats above it: "!" (default) or "-$" (money owed). */
-  indicator: z.enum(['!', '-$']).default('!'),
+  /** What floats above it: "!" (default), "-$" (money owed) or "talk" (a speech bubble over a person to talk to). */
+  indicator: z.enum(['!', '-$', 'talk']).default('!'),
   /**
    * Optional tile kind (e.g. "water") that makes every tile of that kind part
    * of the hotspot: it glows in `highlightColor` when Alex is near any of them.
    */
   area: z.string().optional(),
+  /** Extra tiles that belong to this hotspot too (they glow and can be read from), e.g. a well on the river bank. */
+  alsoAt: z.array(z.object({ x: z.number().int().min(0), y: z.number().int().min(0) })).default([]),
   highlightColor: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/)
@@ -228,12 +311,19 @@ export type Hotspot = z.infer<typeof HotspotSchema>;
  * errands around town; workers move between stations (consoles, racks).
  */
 export const NpcSchema = z.object({
-  /** "neighbor" (TOWNSFOLK looks, coughs as Alex passes) or "worker" (lab coats; WORKERS looks). */
-  role: z.enum(['neighbor', 'worker']).default('neighbor'),
-  /** Which built-in look (neighbors 0–9, workers 0–3; see src/game/art/illustrations/common.ts). */
-  look: z.number().int().min(0),
+  /**
+   * "neighbor" (TOWNSFOLK looks, coughs as Alex passes), "worker" (lab coats; WORKERS looks)
+   * or "character" (a named person with their own outfit; CHARACTERS looks: 0 = farmer, 1 = council member).
+   */
+  role: z.enum(['neighbor', 'worker', 'character']).default('neighbor'),
+  /** Which built-in look (neighbors 0–9, workers 0–3, characters 0–1; see src/game/art/illustrations/common.ts). */
+  look: z.number().int().min(0).default(0),
+  /** A person from characters.json (e.g. "ruth"): they stand here, look and feel as set there, and Alex can talk to them. */
+  character: z.string().optional(),
+  /** Stay on this tile instead of running errands (e.g. someone to talk to; pair with a "talk" hotspot on the same tile). */
+  stand: z.boolean().default(false),
   /** "sad" (frown, rain cloud now and then), "angry" (tight mouth, hard brows) or "neutral" (flat mouth). */
-  mood: z.enum(['sad', 'angry', 'neutral']),
+  mood: z.enum(['sad', 'angry', 'neutral']).default('sad'),
   x: z.number().int().min(0),
   y: z.number().int().min(0),
 });
@@ -259,6 +349,8 @@ export const MapSchema = contentFile({
         spawn: z.object({ x: z.number().int().min(0), y: z.number().int().min(0) }),
         /** Hint shown when Alex is close, e.g. "Press E to enter". */
         hint: z.string().min(1),
+        /** Optional sign that always floats over the door (with a bobbing arrow), e.g. "Data Center". "" = none. */
+        sign: z.string().default(''),
       }),
     )
     .default([]),
@@ -311,8 +403,28 @@ export const NoiseWidgetSchema = z.object({
   musicDip: z.number().min(0).max(1).default(0.55),
   countsTowardCompletion: z.boolean().default(true),
 });
-export const HudWidgetSchema = z.discriminatedUnion('type', [PortraitWidgetSchema, NoiseWidgetSchema]);
+export const EnergyWidgetSchema = z.object({
+  type: z.literal('energy'),
+  /** Label on the bar, and the word shown instead when energy is low. */
+  label: z.string().default('Energy'),
+  lowLabel: z.string().default('Exhausted'),
+  /** Optional pop-up opened by clicking the bar (does not count toward completion). */
+  popup: z.string().optional(),
+  /** Percent of energy lost per minute anywhere, and per minute extra right next to the source. */
+  drainPerMinute: z.number().min(0).default(4),
+  nearDrainPerMinute: z.number().min(0).default(14),
+  /** Drains faster within `range` tiles of this tile kind (or kinds). */
+  source: z.union([z.string().min(1), z.array(z.string().min(1)).min(1)]),
+  range: z.number().positive().default(12),
+  /** Energy never drops below this percent. Below `lowAt` percent Alex walks slower. */
+  floor: z.number().min(0).max(100).default(15),
+  lowAt: z.number().min(0).max(100).default(35),
+});
+export const HudWidgetSchema = z.discriminatedUnion('type', [PortraitWidgetSchema, NoiseWidgetSchema, EnergyWidgetSchema]);
 export type HudWidget = z.infer<typeof HudWidgetSchema>;
+/** Widgets that are buttons you read (they have an id and open a pop-up that counts toward completion). */
+export type ReadableWidget = Extract<HudWidget, { id: string }>;
+export const isReadableWidget = (w: HudWidget): w is ReadableWidget => 'id' in w;
 
 export const HudSchema = contentFile({
   widgets: z.array(HudWidgetSchema),

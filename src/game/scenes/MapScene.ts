@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { MapContent } from '../../content/schemas';
+import { characterHotspots } from '../../content/characters';
 import { getContent } from '../../content/store';
 import { showError } from '../../ui/errorBox';
 import { isPopupOpen, openPopup } from '../../ui/popup';
@@ -11,9 +12,10 @@ import { addProgressCounter, completionIds } from '../hud/progressCounter';
 import { flow } from '../flow';
 import { progress } from '../../state/progress';
 import { startHud, type RunningWidget } from '../hud/widgets';
-import { parseMap } from '../map/grid';
+import { parseMap, type Block } from '../map/grid';
+import { HintArrow } from '../map/hintArrow';
 import { HotspotMarkers } from '../map/hotspots';
-import { MAP_SCALE, TILE, kinds, paintGround } from '../map/kinds';
+import { MAP_SCALE, TILE, effectiveGrounds, kinds, paintGround } from '../map/kinds';
 import { Doors } from '../map/doors';
 import { Townsfolk, coughPuff } from '../map/npcs';
 import { Player } from '../map/player';
@@ -39,6 +41,7 @@ export class MapScene extends Phaser.Scene {
   private townsfolk?: Townsfolk;
   private flowWater?: (deltaMs: number) => void;
   private doors?: Doors;
+  private hintArrow?: HintArrow;
   /** Where Alex arrives when coming through a door (otherwise the map's spawn). */
   private arriveAt?: { x: number; y: number };
   private leaving = false;
@@ -57,6 +60,7 @@ export class MapScene extends Phaser.Scene {
     this.arriveAt = data.spawn;
     this.leaving = false;
     this.doors = undefined;
+    this.hintArrow = undefined;
     this.player = undefined;
     this.effects = [];
     this.widgets = [];
@@ -139,6 +143,61 @@ export class MapScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * The "stuck?" arrow: points at the nearest unread marker on this map, or, if
+   * everything left is elsewhere, at the door to the map that still has some.
+   */
+  private makeHintArrow(doors: MapContent['doors']): HintArrow {
+    const ui = getContent().ui.map;
+    const maps = getContent().maps;
+    const unreadOn = (name: string) => {
+      const m = maps[name];
+      return m ? [...m.hotspots, ...characterHotspots(m)].some((h) => h.countsTowardCompletion && !progress.isRead(h.id)) : false;
+    };
+    return new HintArrow(this, ui.hintAfterSeconds, ui.hintLabel, (px, py) => {
+      const points = this.markers.unreadPoints();
+      if (!points.length)
+        points.push(...doors.filter((d) => unreadOn(d.to)).map((d) => ({ x: (d.x + 0.5) * TILE_PX, y: (d.y + 0.5) * TILE_PX })));
+      let best: { x: number; y: number } | null = null;
+      let bestD = Infinity;
+      for (const pt of points) {
+        const d = Phaser.Math.Distance.Between(px, py, pt.x, pt.y);
+        if (d < bestD) {
+          best = pt;
+          bestD = d;
+        }
+      }
+      return best;
+    });
+  }
+
+  /**
+   * Buildings are drawn taller than the tiles they stand on. Mark the tiles above a
+   * building's footprint that its drawing mostly covers (walls, roof), so Alex walks
+   * around the building instead of into it; thin parts like a clock tower stay passable.
+   */
+  private markCovered(block: Block, key: string, bottom: number, out: Set<string>): void {
+    const frame = this.textures.getFrame(key);
+    const left = (block.x + block.w / 2) * TILE_PX - frame.width / 2;
+    const top = bottom - frame.height;
+    const firstRow = Math.max(0, Math.floor(top / TILE_PX));
+    const SAMPLES = 6;
+    for (let ty = firstRow; ty < block.y; ty++) {
+      for (let tx = block.x; tx < block.x + block.w; tx++) {
+        let solid = 0;
+        for (let i = 0; i < SAMPLES; i++) {
+          for (let j = 0; j < SAMPLES; j++) {
+            const px = Math.floor(tx * TILE_PX + ((i + 0.5) / SAMPLES) * TILE_PX - left);
+            const py = Math.floor(ty * TILE_PX + ((j + 0.5) / SAMPLES) * TILE_PX - top);
+            if (px < 0 || py < 0 || px >= frame.width || py >= frame.height) continue;
+            if ((this.textures.getPixelAlpha(px, py, key) ?? 0) > 0) solid++;
+          }
+        }
+        if (solid / (SAMPLES * SAMPLES) >= 0.5) out.add(`${tx},${ty}`);
+      }
+    }
+  }
+
   /** Alex is unwell: a cough every so often (audio.json → alexCoughSeconds). */
   private scheduleAlexCough(): void {
     const [min, max] = getContent().audio.alexCoughSeconds;
@@ -179,9 +238,12 @@ export class MapScene extends Phaser.Scene {
       grid.h * TILE,
       (p) => {
         const rng = seeded(this.mapName.length * 7919 + grid.w);
+        // Objects take the ground around them, and edges blend against those grounds.
+        const groundAt = effectiveGrounds(grid.w, grid.h, (x, y) => grid.kindAt(x, y));
         for (let y = 0; y < grid.h; y++) {
           for (let x = 0; x < grid.w; x++) {
-            paintGround(p.at(x * TILE, y * TILE), grid.kindAt(x, y), grid.neighborsOf(x, y), rng, dryAt(x, y));
+            const n = (dx: number, dy: number) => groundAt(x + dx, y + dy);
+            paintGround(p.at(x * TILE, y * TILE), groundAt(x, y), n, rng, dryAt(x, y));
           }
         }
       },
@@ -190,6 +252,8 @@ export class MapScene extends Phaser.Scene {
     this.add.image(0, 0, groundKey).setOrigin(0).setDepth(-1);
 
     // Trees, fences and buildings: sprites sorted by their base so Alex walks behind or in front.
+    // Tiles covered by a building's walls or roof (above its footprint), so Alex can't walk into the drawing.
+    const behindBuildings = new Set<string>();
     for (const block of grid.objects) {
       const sprite = kinds[block.kind].object!(grid.neighborsOf(block.x, block.y), block, dryAt(block.x, block.y));
       const key = makeTexture(
@@ -206,11 +270,13 @@ export class MapScene extends Phaser.Scene {
         .setOrigin(0.5, 1)
         .setDepth(bottom);
       this.addLeds(block, sprite, bottom);
+      if (block.w > 1 && block.h > 1) this.markCovered(block, key, bottom, behindBuildings);
     }
 
     const start = this.arriveAt ?? map.spawn;
-    this.player = new Player(this, (start.x + 0.5) * TILE_PX, (start.y + 0.8) * TILE_PX, grid.walkable);
-    this.markers = new HotspotMarkers(this, map.hotspots, grid);
+    const alexCanWalk = (x: number, y: number) => grid.walkable(x, y) && !behindBuildings.has(`${x},${y}`);
+    this.player = new Player(this, (start.x + 0.5) * TILE_PX, (start.y + 0.8) * TILE_PX, alexCanWalk);
+    this.markers = new HotspotMarkers(this, [...map.hotspots, ...characterHotspots(map)], grid);
     this.townsfolk = new Townsfolk(this, map.npcs, grid);
     this.flowWater = addWaterFlow(this, grid);
     this.scheduleAlexCough();
@@ -220,12 +286,21 @@ export class MapScene extends Phaser.Scene {
       () => this.markers.isNear || this.leaving,
       (door) => this.goThrough(door),
     );
+    this.hintArrow = this.makeHintArrow(map.doors);
 
     const centersOf = (kind: string) => grid.centersOf(kind).map((c) => ({ x: c.x * TILE_PX, y: c.y * TILE_PX }));
     const blocksOf = (kind: string) =>
       grid.objects.filter((b) => b.kind === kind).map((b) => ({ x: b.x * TILE_PX, y: b.y * TILE_PX, w: b.w * TILE_PX, h: b.h * TILE_PX }));
     this.effects = startEffects(this, map.effects, { worldW, worldH, tilePx: TILE_PX, centersOf, blocksOf });
-    this.widgets = startHud(this, { depth: HUD_DEPTH, tilePx: TILE_PX, centersOf, noise: map.noise });
+    this.widgets = startHud(this, {
+      depth: HUD_DEPTH,
+      tilePx: TILE_PX,
+      centersOf,
+      noise: map.noise,
+      setWalkSpeed: (f) => {
+        if (this.player) this.player.speedFactor = f;
+      },
+    });
     addProgressCounter(this, HUD_DEPTH, 20, 166);
     addMuteButton(this, HUD_DEPTH);
     addResetButton(this, HUD_DEPTH);
@@ -264,6 +339,7 @@ export class MapScene extends Phaser.Scene {
     const { x, y } = this.player;
     this.markers.update(x, y);
     this.doors?.update(x, y);
+    this.hintArrow?.update(x, y);
     for (const fx of this.effects) fx.update?.(x, y);
     for (const w of this.widgets) w.update?.(x, y);
     this.townsfolk?.update(delta, x, y);

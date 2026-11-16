@@ -1,28 +1,43 @@
 {
   "schemaVersion": 1,
-  "_description": "Ending slides, shown once every pop-up is read (see flow.json). Same format as sequences/intro.json: each slide has a 'caption' and an 'illustration' (built-in pictures: \"valley-home\", \"town-meeting\", \"construction\", \"data-center-opens\", \"town-together\" (neighbors with picture signs outside the data center), \"screen-glow\" (a laptop with an AI chat at night, the data center through the window)). 'music' = track from audio.json.",
+  "_description": "Ending slides, shown once every pop-up is read (see flow.json). Same format as sequences/intro.json: each slide has a 'caption' and an 'illustration' (built-in pictures: \"valley-home\", \"town-meeting\", \"construction\", \"data-center-opens\", \"town-together\" (neighbors with picture signs outside the data center), \"screen-glow\" (a laptop with an AI chat at night, the data center through the window), \"town-vote\" (election day: voters at a ballot box outside the town hall, blue bunting), \"valley-home-after\" (Alex's home afterward: gray sky, woods cut down, river still brown)). 'signs' (optional) = words on the signs people hold in that picture (\"town-together\", \"town-vote\"); up to 2 short lines, \"|\" starts line 2. 'music' = track from audio.json.",
   "_usedIn": "Simulation page → Ending slides (after everything is read)",
   "music": "ending",
   "slides": [
     {
       "_location": "Ending slide 1",
       "illustration": "data-center-opens",
-      "caption": "PLACEHOLDER: Alex still lives next door. The hum never stops, the river is still brown, and the bills keep coming."
+      "caption": "Alex still lives next to the data center. The hum never stops, the river is still brown, and the bills keep coming."
     },
     {
       "_location": "Ending slide 2",
       "illustration": "town-together",
-      "caption": "PLACEHOLDER: Neighbors began meeting, sharing what they had seen, and asking the town to listen."
+      "signs": [
+        "SAVE OUR|WATER",
+        "NO MORE|SECRETS",
+        "CLEAN|AIR NOW",
+        "OUR|HEALTH"
+      ],
+      "caption": "Outraged neighbors have begun to take action, sharing what they are experiencing and asking local officials to listen. Collective action remains an important measure to stop data centers from spreading across the nation."
     },
     {
       "_location": "Ending slide 3",
-      "illustration": "screen-glow",
-      "caption": "PLACEHOLDER: Data centers like this one power the AI tools many of us use every day, often far from where we live."
+      "illustration": "town-vote",
+      "signs": [
+        "VOTE FOR|WATER",
+        "PASS THE|BILL"
+      ],
+      "caption": "At the next election, residents will vote for Councilmember Johnson’s new bill. The public holds power in holding AI companies accountable for their harms."
     },
     {
       "_location": "Ending slide 4",
-      "illustration": "valley-home",
-      "caption": "PLACEHOLDER: Who pays for the answers we ask for? Take a moment to think about Datadew Valley."
+      "illustration": "screen-glow",
+      "caption": "Data centers power the AI tools that many of us use every day. These centers are often out of sight from their users, alleviating users from understanding the impacts of communities like Alex’s."
+    },
+    {
+      "_location": "Ending slide 5",
+      "illustration": "valley-home-after",
+      "caption": "While the river in Datadew Valley might still be brown, change is coming. The next time you ask an AI chatbot for an answer, think about Alex and Datadew Valley. Who are the people that are paying for your answers?"
     }
   ]
 }

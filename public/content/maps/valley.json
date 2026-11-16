@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "_description": "The valley map, as a grid of letters (one string per row, all rows the same length). Each letter is a tile; 'legend' says what each letter is. Ground (walkable): grass, flowers, dirt (cleared land), road (asphalt; make roads 2 tiles wide so the lane lines draw), sidewalk, bridge (a road over the river), path (golden footpath). water = the river (not walkable). 1-tile things that block walking: alex-mailbox (Alex's own), tree-pine, tree-oak (both wilt near the data center and are dead close to it), tree-dead (dead, on bare ground), floodlight (a light post; the 'glare' effect puts its light on top), bush, rock, stump, fence, well, trash-can, mailbox, bench, stop-sign, street-sign, lamp, hydrant. Bigger things fill a block of their letter: car 2 wide × 1 tall; cottage (Alex's house), house, house-modern, house-tall 3 × 2; shop 4 × 2; town-hall 8 × 3; data-center 9 × 3. Houses, shops, cars, bins and mailboxes pick their colors from where they stand, so neighbors look different. To move something, edit the letters (keep blocks the right size). 'spawn' = where Alex starts (column, row; 0 = left/top). 'hotspots' = the '!' markers: 'id' (unique, remembers what was read), 'popup' (an id in popups.json), 'x'/'y' (column/row of a walkable tile), 'countsTowardCompletion' (default true). 'indicator' = what floats above it: \"!\" (default) or \"-$\" (money owed). 'area' (optional) = a tile kind (e.g. \"water\") that makes every tile of that kind part of the hotspot; they glow in 'highlightColor' when Alex is near. A hotspot may stand on a blocked tile (a mailbox, the river) if a walkable tile is right next to it. 'music' = track in audio.json. 'effects' = atmosphere, in order: {\"type\":\"desaturate\",\"amount\":0–1} mutes colors; {\"type\":\"smog\",\"source\":\"data-center\",\"radius\":tiles,\"maxAlpha\":0–1,\"color\":\"#rrggbb\",\"townClouds\":count,\"townAlpha\":0–1,\"baseVeil\":0–1} haze that thickens near the source, smog patches drifting over the whole town, and a light haze everywhere; {\"type\":\"overcast\",\"clouds\":count,\"alpha\":0–1} cloud shadows; {\"type\":\"glare\",\"source\":\"data-center\",\"lights\":\"floodlight\",\"lightHeight\":tiles,\"radius\":tiles,\"maxAlpha\":0–1} blinding lights on the floodlight posts and a white glare on screen as Alex gets close to the source; {\"type\":\"tint\",\"color\":\"#rrggbb\",\"alpha\":0–1} a color wash (used indoors). 'dryness' = grass yellows and thins within 'radius' tiles of 'source'. 'npcs' = neighbors: 'look' (0–9, a built-in neighbor), 'mood' (\"sad\" = frown and a rain cloud now and then, \"angry\" = tight mouth and hard brows), 'x'/'y' (a walkable start tile). Each lives in the house nearest their start, walks along sidewalks to shops, the town hall, wells and benches, goes inside buildings (disappearing until they come back out), then heads home. They cough when Alex walks past. 'doors' = ways into other maps: stand next to (x, y) and press E to go to map 'to' (a file in content/maps/), arriving at its 'spawn'; 'hint' is the text shown when Alex is close.",
+  "_description": "The valley map, as a grid of letters (one string per row, all rows the same length). Each letter is a tile; 'legend' says what each letter is. Ground (walkable): grass, flowers, dirt (cleared land), road (asphalt; make roads 2 tiles wide so the lane lines draw), sidewalk, bridge (a road over the river), path (golden footpath). water = the river (not walkable). 1-tile things that block walking: alex-mailbox (Alex's own), tree-pine, tree-oak (both wilt near the data center and are dead close to it), tree-dead (dead, on bare ground), floodlight (a light post; the 'glare' effect puts its light on top), bush, rock, stump, fence, well (murky brown water), trash-can, mailbox, bench, stop-sign, street-sign, lamp, hydrant. Bigger things fill a block of their letter: car 2 wide × 1 tall; cottage (Alex's house), house, house-modern, house-tall 3 × 2; shop 4 × 2; town-hall 8 × 3; data-center 9 × 3; Objects sit on the ground around them automatically. Alex can't walk onto the part of a building drawn above its footprint (walls, roof). Houses, shops, cars, bins and mailboxes pick their colors from where they stand, so neighbors look different. To move something, edit the letters (keep blocks the right size). 'spawn' = where Alex starts (column, row; 0 = left/top). 'hotspots' = the '!' markers: 'id' (unique, remembers what was read), 'popup' (an id in popups.json), 'x'/'y' (column/row of a walkable tile), 'countsTowardCompletion' (default true). 'indicator' = what floats above it: \"!\" (default) or \"-$\" (money owed). 'area' (optional) = a tile kind (e.g. \"water\") that makes every tile of that kind part of the hotspot; they glow in 'highlightColor' when Alex is near. 'alsoAt' (optional) = extra tiles [{x, y}] that belong to the same hotspot (e.g. the well beside the river). A hotspot may stand on a blocked tile (a mailbox, the river) if a walkable tile is right next to it. 'music' = track in audio.json. 'effects' = atmosphere, in order: {\"type\":\"desaturate\",\"amount\":0–1} mutes colors; {\"type\":\"smog\",\"source\":\"data-center\",\"radius\":tiles,\"maxAlpha\":0–1,\"color\":\"#rrggbb\",\"townClouds\":count,\"townAlpha\":0–1,\"baseVeil\":0–1} haze that thickens near the source, smog patches drifting over the whole town, and a light haze everywhere; {\"type\":\"overcast\",\"clouds\":count,\"alpha\":0–1} cloud shadows; {\"type\":\"glare\",\"source\":\"data-center\",\"lights\":\"floodlight\",\"lightHeight\":tiles,\"radius\":tiles,\"maxAlpha\":0–1} blinding lights on the floodlight posts and a white glare on screen as Alex gets close to the source; {\"type\":\"tint\",\"color\":\"#rrggbb\",\"alpha\":0–1} a color wash (used indoors). 'dryness' = grass yellows and thins within 'radius' tiles of 'source'. 'npcs' = neighbors: 'role' (\\\"neighbor\\\" default, or \\\"character\\\" for a named person: look 0 = farmer, 1 = council member), 'look' (0–9 for neighbors), 'mood' (\"sad\" = frown and a rain cloud now and then, \"angry\" = tight mouth and hard brows), 'x'/'y' (a walkable start tile). Each lives in the house nearest their start, walks along sidewalks to shops, the town hall, wells and benches, goes inside buildings (disappearing until they come back out), then heads home. They cough when Alex walks past. 'stand': true keeps someone in place. { \\\"character\\\": \\\"ruth\\\", \\\"x\\\", \\\"y\\\" } places a person from characters.json: they stand there and Alex can talk to them (their name, look, mood and conversation are set in characters.json). 'doors' = ways into other maps: stand next to (x, y) and press E to go to map 'to' (a file in content/maps/), arriving at its 'spawn'; 'hint' is the text shown when Alex is close; 'sign' (optional) is a label that always floats over the door with a bobbing arrow, so players can see where to go in.",
   "_usedIn": "Simulation page → the valley (game map)",
   "music": "valley",
   "effects": [
@@ -78,27 +78,19 @@
   },
   "hotspots": [
     {
-      "_location": "Cleared land between Alex's cottage and the data center, among the stumps",
-      "id": "vegetation-loss",
-      "popup": "vegetation-loss",
-      "x": 27,
-      "y": 6
-    },
-    {
-      "_location": "Town plaza in front of the town hall, next to the well",
-      "id": "community",
-      "popup": "community",
-      "x": 6,
-      "y": 12
-    },
-    {
-      "_location": "The river (whole river glows); the '!' floats on the water across from Alex's cottage",
+      "_location": "The river (whole river glows) and the well on its right bank; the '!' floats on the water across from Alex's cottage",
       "id": "river-contamination",
       "popup": "river-contamination",
       "x": 23,
       "y": 10,
       "area": "water",
-      "highlightColor": "#fff2a8"
+      "highlightColor": "#fff2a8",
+      "alsoAt": [
+        {
+          "x": 24,
+          "y": 9
+        }
+      ]
     },
     {
       "_location": "Alex's mailbox in front of the cottage (red '-$')",
@@ -126,8 +118,8 @@
         "x": 30,
         "y": 7
       },
-      
-      "hint": "Press E to enter"
+      "hint": "Press E to enter",
+      "sign": "Data Center"
     }
   ],
   "npcs": [
@@ -200,6 +192,18 @@
       "mood": "sad",
       "x": 12,
       "y": 10
+    },
+    {
+      "_location": "The park, beside the well: Ruth (see characters.json)",
+      "character": "ruth",
+      "x": 29,
+      "y": 24
+    },
+    {
+      "_location": "Town plaza, near the town hall: Councilmember Johnson (see characters.json)",
+      "character": "johnson",
+      "x": 7,
+      "y": 10
     }
   ],
   "grid": [
@@ -212,9 +216,9 @@
     "O,.b.O...-RR-,........~~::::::::::s:DDDDDDDDD::O",
     "TWWWWWWWW-RR-mmm.hhh..~~:::::s:::::FDDDDDDDDDF:T",
     "OWWWWWWWW-RRlmmm.hhhc.~~:s:::::::::::RR::F:::::O",
-    "TWWWWWWWW-RR-...w.....~~:::Y.......:-RR-:::s::YT",
+    "TWWWWWWWW-RR-.........~~w::Y.......:-RR-:::s::YT",
     "Ol------l-RR-.T.,.b,O.~~::::..HHH..:-RR-:s:::::O",
-    "T---w-----RR-.........~~::s:..HHHc.:-RR-::::Y::T",
+    "T---------RR-.........~~::s:..HHHc.:-RR-::::Y::T",
     "O-e----e--RR-SSSS.SSSS~~:s::.b.-...:-RR-::::s::O",
     "T---------RR-SSSS.SSSS~~:::::::-X:::-RR-:::::::T",
     "O--l-----nRRg---l---l-~~--l------l--nRRg-y-l---O",

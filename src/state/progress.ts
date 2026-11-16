@@ -6,14 +6,17 @@ const KEY = 'datadew:progress:v1';
 
 interface Saved {
   read: string[];
+  /** Alex's energy, 0–100 (the HUD energy bar). */
+  energy: number;
 }
 
 function load(): Saved {
   try {
     const data = JSON.parse(localStorage.getItem(KEY) ?? '{}') as Partial<Saved>;
-    return { read: Array.isArray(data.read) ? data.read : [] };
+    const energy = typeof data.energy === 'number' && data.energy >= 0 && data.energy <= 100 ? data.energy : 100;
+    return { read: Array.isArray(data.read) ? data.read : [], energy };
   } catch {
-    return { read: [] };
+    return { read: [], energy: 100 };
   }
 }
 
@@ -34,12 +37,26 @@ export const progress = {
   readIds: () => new Set(state.read),
   markRead(id: string): void {
     if (state.read.includes(id)) return;
-    state = { read: [...state.read, id] };
+    state = { ...state, read: [...state.read, id] };
     save();
+  },
+  energy: () => state.energy,
+  /** Set Alex's energy (0–100). Saved when it changes by a whole point, so frequent calls are cheap. */
+  setEnergy(value: number): void {
+    const next = Math.max(0, Math.min(100, value));
+    const changed = Math.floor(next) !== Math.floor(state.energy);
+    state = { ...state, energy: next };
+    if (changed) {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(state));
+      } catch {
+        /* storage blocked */
+      }
+    }
   },
   /** Forget everything (the Reset button). */
   reset(): void {
-    state = { read: [] };
+    state = { read: [], energy: 100 };
     save();
   },
   /** Subscribe to changes; returns an unsubscribe function. */

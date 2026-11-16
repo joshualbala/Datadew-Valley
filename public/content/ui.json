@@ -1,11 +1,13 @@
 {
   "schemaVersion": 1,
-  "_description": "General on-screen text for the game. 'start' = the first screen (needed so the browser allows sound): 'prompt' is the main line, 'soundNote' the smaller line under it. 'title' = the opening page: 'heading' is the big game name, 'tagline' is an optional line under it (leave \"\" to hide), 'enterButton' is the button label, 'hint' is the small text under the button. 'sequence' = the intro slides: 'nextHint' is the small text in the caption box telling players how to continue, 'backButton' is the label of the button that goes to the previous slide. 'popup' = pop-up windows: 'continueButton' is the default closing button label. 'map' = the game map: 'interactHint' shows above a '!' when Alex is close, 'progress' is the counter in the corner ({read} and {total} become numbers). 'reset' = the Reset button in the game's top-right corner: 'confirm' is the note shown after the first click (a second click clears all progress and returns to the title screen).",
+  "_description": "General on-screen text for the game. 'start' = the first screen (needed so the browser allows sound): 'prompt' is the main line, 'soundNote' the smaller line under it; 'noiseWarningTitle' and 'noiseWarning' fill the warning box about loud sounds (leave \"\" to hide it). 'title' = the opening page: 'heading' is the big game name, 'tagline' is an optional line under it (leave \"\" to hide), 'enterButton' is the button label, 'hint' is the small text under the button. 'sequence' = the intro slides: 'nextHint' is the small text in the caption box telling players how to continue, 'backButton' is the label of the button that goes to the previous slide. 'popup' = pop-up windows: 'continueButton' is the default closing button label. 'map' = the game map: 'interactHint' shows above a '!' when Alex is close, 'progress' is the counter in the corner ({read} and {total} become numbers); 'talkHint' shows above a person Alex can talk to; after 'hintAfterSeconds' seconds without finding anything new, an arrow next to Alex points toward something unread, labeled 'hintLabel' (0 turns hints off). 'reset' = the Reset button in the game's top-right corner: 'confirm' is the note shown after the first click (a second click clears all progress and returns to the title screen). 'chat' = conversations with people: 'alexName' is the name under Alex's face, 'skipHint' the small note shown while the conversation plays.",
   "_usedIn": "Simulation page → Start screen, Title screen (opening page), Intro slides, Pop-ups, Game map",
   "start": {
     "_location": "Very first screen, dark background, before the opening page",
     "prompt": "Click anywhere to begin",
-    "soundNote": "This experience uses sound. Headphones are recommended."
+    "soundNote": "This experience uses sound. Headphones are recommended.",
+    "noiseWarningTitle": "Sound warning",
+    "noiseWarning": "This simulation plays loud, unpleasant sounds: a data center's constant roar, construction noise and coughing. Please start with your volume low. You can mute at any time with the speaker button or the M key."
   },
   "title": {
     "_location": "Opening page, centered over the bright valley landscape",
@@ -24,12 +26,20 @@
     "continueButton": "Continue"
   },
   "map": {
-    "_location": "Game map: above a nearby '!' and the counter in the top-left corner",
+    "_location": "Game map: above a nearby '!', the counter in the top-left corner, and the hint arrow",
     "interactHint": "Press E",
-    "progress": "{read} / {total} read"
+    "progress": "{read} / {total} read",
+    "talkHint": "Press E to talk",
+    "hintAfterSeconds": 45,
+    "hintLabel": "Something to see this way"
   },
   "reset": {
     "_location": "Game: under the Reset button (top-right, next to mute) after the first click",
     "confirm": "Click again to reset all progress"
+  },
+  "chat": {
+    "_location": "Conversations with people (characters.json)",
+    "alexName": "Alex",
+    "skipHint": "Click the chat to show it all"
   }
 }

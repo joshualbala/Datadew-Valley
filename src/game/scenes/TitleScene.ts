@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { getContent } from '../../content/store';
+import { progress } from '../../state/progress';
 import { audio } from '../audio/audioManager';
 import { FONT, GAME_WIDTH } from '../constants';
 import { ART_PX, AW, DATA_CENTER_X, GROUND_Y, makeSceneryTextures, paintBackground, riverCenter } from '../art/titleScenery';
@@ -135,6 +136,8 @@ export class TitleScene extends Phaser.Scene {
   private start(): void {
     if (this.started) return;
     this.started = true;
+    // Every playthrough starts fresh: no pop-ups read, full energy.
+    progress.reset();
     this.cameras.main.fadeOut(600, 0, 0, 0);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       // On to the steps in content/flow.json (intro slides first). Music keeps playing.

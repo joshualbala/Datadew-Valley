@@ -5,6 +5,7 @@ import {
   COTTAGE_DOOR_X,
   COTTAGE_W,
   PERSON_H,
+  PERSON_W,
   cottage,
   driftAcross,
   flowers,
@@ -14,12 +15,16 @@ import {
   picketFence,
   picketFenceSide,
   rand,
+  person,
   river,
   seeded,
+  stump,
   sky,
   wavingPerson,
   type Illustration,
+  type RiverColors,
 } from './common';
+import type { PixelPainter } from '../pixel';
 
 // Zoomed in (3× pixels) so Alex and the house fill the picture. Art grid: 280×120.
 const SCALE = 3;
@@ -36,64 +41,82 @@ const ALEX_X = DOOR_X + 14;
 const ALEX_FEET = 109;
 const riverLine = (x: number) => 115 + Math.round(2 * Math.sin(x / 20) + Math.sin(x / 7));
 
+/** After the data center: gray sky and a brown, murky river. */
+const GRAY_SKY = [0x7d8590, 0x868e98, 0x8f97a0, 0x99a0a8, 0xa2a8af, 0xaab0b6, 0xb2b7bc, 0xb9bdc1, 0xbfc2c5, 0xc4c6c8];
+/** Tired, yellowed grass for the after picture. */
+const DRY_GRASS = { base: 0x9a9a5a, dark: 0x83834a, light: 0xb0ad6c, tuft: 0x74733f };
+const BROWN_WATER: RiverColors = { water: 0x8a6a3a, deep: 0x6e5230, light: 0xa88a5a, sand: C.bankSand, bank: 0x6b6a3e };
+
+/**
+ * Alex's home. Before (`after` false): the garden gate, the woods by the river, a sunny morning.
+ * After: the same home under a gray sky, the woods cut to stumps, and the river murky brown.
+ */
+function paintHome(p: PixelPainter, after: boolean): void {
+  const area = gridOf(valleyHome);
+  const rng = seeded(11);
+  sky(p, after ? GRAY_SKY : C.sky, 66, area);
+  if (!after) p.disc(236, 20, 13, C.sunGlow, 0.35).disc(236, 20, 10, C.sunGlow, 0.6).disc(236, 20, 7, C.sun).disc(234, 18, 3, C.sunCore);
+  hills(p, 52, 4, 26, 0.5, C.mountain, undefined, area);
+  hills(p, 60, 3, 20, 2, C.hillFar, C.hillFarShade, area);
+  hills(p, 66, 3, 16, 4, C.hillNear, C.hillNearLight, area);
+  meadow(p, GROUND, rng, after ? DRY_GRASS : undefined, area);
+
+  // The woods by the river (cleared later in the story: only stumps remain after).
+  if (after) {
+    for (let x = 188; x < area.w - 6; x += rng.between(12, 18)) stump(p, x, GROUND + 4 + rng.between(0, 6));
+  } else {
+    for (let x = 186; x < area.w; x += rng.between(9, 13)) pine(p.at(x, GROUND - 38 + rng.between(-3, 2)));
+    for (let x = 196; x < area.w; x += rng.between(14, 20)) oak(p.at(x, GROUND - 22 + rng.between(0, 5)));
+  }
+  oak(p.at(-8, GROUND - 26));
+
+  // Back and side fences of the yard (behind the house).
+  picketFence(p, YARD_LEFT, YARD_RIGHT, YARD_BACK);
+  picketFenceSide(p, YARD_LEFT, YARD_BACK, YARD_FRONT);
+  picketFenceSide(p, YARD_RIGHT, YARD_BACK, YARD_FRONT);
+
+  // Vegetable garden and sunflowers inside the yard.
+  const gx = COTTAGE_X + COTTAGE_W + 10;
+  for (let row = 0; row < 3; row++) {
+    const ry = 84 + row * 7;
+    p.rect(gx, ry, 52, 3, 0x7a5232).rect(gx, ry + 3, 52, 1, 0x5e3e24);
+    for (let i = 0; i < 9; i++) {
+      p.px(gx + 2 + i * 6, ry - 1, C.leafLight)
+        .px(gx + 3 + i * 6, ry - 2, C.leaf)
+        .px(gx + 1 + i * 6, ry - 1, C.leaf);
+      if (row === 1 && i % 3 === 0) p.px(gx + 2 + i * 6, ry, 0xe0483e); // tomatoes
+    }
+  }
+  for (const sx of [YARD_RIGHT - 8, YARD_RIGHT - 14]) {
+    p.rect(sx, 72, 1, 20, C.tuft)
+      .px(sx + 1, 82, C.leaf)
+      .px(sx - 1, 86, C.leaf);
+    p.disc(sx, 70, 3, 0xffd23f).disc(sx, 70, 1, 0x7a4a24);
+  }
+
+  cottage(p, COTTAGE_X, COTTAGE_Y);
+  bush(p.at(COTTAGE_X - 14, COTTAGE_Y - 10));
+
+  // Stone path from the door, out through the gate, down to the river.
+  for (let y = COTTAGE_Y + 1; y < riverLine(DOOR_X) - 6; y += 3) {
+    p.rect(DOOR_X + 1 + (y % 2), y, 3, 2, C.stoneShade).rect(DOOR_X + 5 - (y % 2), y + 1, 3, 2, C.stoneShade);
+  }
+
+  // Front fence, with the gate standing open.
+  picketFence(p, YARD_LEFT, YARD_RIGHT, YARD_FRONT, GATE);
+  p.rect(GATE[0] - 1, YARD_FRONT - 9, 2, 9, 0xd9c9a3).rect(GATE[1] - 1, YARD_FRONT - 9, 2, 9, 0xd9c9a3);
+  for (let i = 0; i < 4; i++) p.rect(GATE[0] - 4 - i, YARD_FRONT - 7 + i * 2, 1, 6, 0xfaf3e3); // swung-open gate
+
+  river(p, rng, after ? BROWN_WATER : undefined, { line: riverLine, half: 4, area });
+  flowers(p, rng, GROUND + 3, after ? 15 : 70, riverLine, area);
+}
+
 /** Before: Alex at the garden gate of their cottage, the woods by the river, a sunny morning. */
 export const valleyHome: Illustration = {
   scale: SCALE,
 
   paint(p) {
-    const area = gridOf(valleyHome);
-    const rng = seeded(11);
-    sky(p, C.sky, 66, area);
-    p.disc(236, 20, 13, C.sunGlow, 0.35).disc(236, 20, 10, C.sunGlow, 0.6).disc(236, 20, 7, C.sun).disc(234, 18, 3, C.sunCore);
-    hills(p, 52, 4, 26, 0.5, C.mountain, undefined, area);
-    hills(p, 60, 3, 20, 2, C.hillFar, C.hillFarShade, area);
-    hills(p, 66, 3, 16, 4, C.hillNear, C.hillNearLight, area);
-    meadow(p, GROUND, rng, undefined, area);
-
-    // The woods by the river (these get cleared later in the story).
-    for (let x = 186; x < area.w; x += rng.between(9, 13)) pine(p.at(x, GROUND - 38 + rng.between(-3, 2)));
-    for (let x = 196; x < area.w; x += rng.between(14, 20)) oak(p.at(x, GROUND - 22 + rng.between(0, 5)));
-    oak(p.at(-8, GROUND - 26));
-
-    // Back and side fences of the yard (behind the house).
-    picketFence(p, YARD_LEFT, YARD_RIGHT, YARD_BACK);
-    picketFenceSide(p, YARD_LEFT, YARD_BACK, YARD_FRONT);
-    picketFenceSide(p, YARD_RIGHT, YARD_BACK, YARD_FRONT);
-
-    // Vegetable garden and sunflowers inside the yard.
-    const gx = COTTAGE_X + COTTAGE_W + 10;
-    for (let row = 0; row < 3; row++) {
-      const ry = 84 + row * 7;
-      p.rect(gx, ry, 52, 3, 0x7a5232).rect(gx, ry + 3, 52, 1, 0x5e3e24);
-      for (let i = 0; i < 9; i++) {
-        p.px(gx + 2 + i * 6, ry - 1, C.leafLight)
-          .px(gx + 3 + i * 6, ry - 2, C.leaf)
-          .px(gx + 1 + i * 6, ry - 1, C.leaf);
-        if (row === 1 && i % 3 === 0) p.px(gx + 2 + i * 6, ry, 0xe0483e); // tomatoes
-      }
-    }
-    for (const sx of [YARD_RIGHT - 8, YARD_RIGHT - 14]) {
-      p.rect(sx, 72, 1, 20, C.tuft)
-        .px(sx + 1, 82, C.leaf)
-        .px(sx - 1, 86, C.leaf);
-      p.disc(sx, 70, 3, 0xffd23f).disc(sx, 70, 1, 0x7a4a24);
-    }
-
-    cottage(p, COTTAGE_X, COTTAGE_Y);
-    bush(p.at(COTTAGE_X - 14, COTTAGE_Y - 10));
-
-    // Stone path from the door, out through the gate, down to the river.
-    for (let y = COTTAGE_Y + 1; y < riverLine(DOOR_X) - 6; y += 3) {
-      p.rect(DOOR_X + 1 + (y % 2), y, 3, 2, C.stoneShade).rect(DOOR_X + 5 - (y % 2), y + 1, 3, 2, C.stoneShade);
-    }
-
-    // Front fence, with the gate standing open.
-    picketFence(p, YARD_LEFT, YARD_RIGHT, YARD_FRONT, GATE);
-    p.rect(GATE[0] - 1, YARD_FRONT - 9, 2, 9, 0xd9c9a3).rect(GATE[1] - 1, YARD_FRONT - 9, 2, 9, 0xd9c9a3);
-    for (let i = 0; i < 4; i++) p.rect(GATE[0] - 4 - i, YARD_FRONT - 7 + i * 2, 1, 6, 0xfaf3e3); // swung-open gate
-
-    river(p, rng, undefined, { line: riverLine, half: 4, area });
-    flowers(p, rng, GROUND + 3, 70, riverLine, area);
+    paintHome(p, false);
   },
 
   animate(stage) {
@@ -173,5 +196,32 @@ export const valleyHome: Illustration = {
     );
     stage.scene.tweens.add({ targets: b, x: b.x + stage.px(36), duration: 4200, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     stage.scene.tweens.add({ targets: b, y: b.y - stage.px(5), duration: 700, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+  },
+};
+
+/** After everything: the same home, gray and quiet, the woods gone and the river still brown. */
+export const valleyHomeAfter: Illustration = {
+  scale: SCALE,
+
+  paint(p) {
+    paintHome(p, true);
+  },
+
+  animate(stage) {
+    // Alex just stands at the gate now.
+    stage.sprite('illu-alex-after', PERSON_W, PERSON_H, (p) => person(p, ALEX, 'stand', 'upset'), ALEX_X, ALEX_FEET - PERSON_H);
+    stage.every(900, () => {
+      const puff = stage.sprite('illu-puff-gray', 5, 5, (p) => p.disc(2, 2, 2, 0xd8d8d8), COTTAGE_X + COTTAGE_W - 11, COTTAGE_Y - 46);
+      puff.setAlpha(0.6);
+      stage.scene.tweens.add({
+        targets: puff,
+        y: puff.y - stage.px(rand(12, 18)),
+        x: puff.x + stage.px(rand(3, 8)),
+        scale: 2,
+        alpha: 0,
+        duration: 3200,
+        onComplete: () => puff.destroy(),
+      });
+    });
   },
 };

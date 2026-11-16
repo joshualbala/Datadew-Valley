@@ -4,6 +4,8 @@ import { PixelPainter } from '../../game/art/pixel';
 import { canvasTarget } from '../canvasTarget';
 import { audio } from '../../game/audio/audioManager';
 import { getContent } from '../../content/store';
+import { ALEX, CHARACTERS, type Look } from '../../game/art/illustrations/common';
+import { PORTRAIT_SIZE, portrait, type PortraitState } from '../../game/art/portrait';
 
 /** What a block can ask of the pop-up it is in. */
 export interface BlockContext {
@@ -37,7 +39,91 @@ function el(tag: string, className: string, text?: string): HTMLElement {
  * How each pop-up block type is shown. To add a block type: add its schema in
  * content/schemas.ts (BlockSchema), then add a renderer here.
  */
+/** A pixel-art face drawn into a small canvas (scaled up crisply by CSS). */
+function face(look: Look, state: PortraitState): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = PORTRAIT_SIZE;
+  canvas.height = PORTRAIT_SIZE;
+  canvas.className = 'chat-portrait';
+  const c = canvas.getContext('2d');
+  if (c) portrait(new PixelPainter(canvasTarget(c), 1), look, state);
+  return canvas;
+}
+
+const reducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
 export const blockRenderers: { [T in Block['type']]: Renderer<T> } = {
+  /**
+   * Alex's face on the left, the other person's on the right; their messages
+   * appear one by one (a "typing" bubble, then the message), the speaker's face
+   * lighting up. Click to show the whole conversation at once.
+   */
+  chat: (b, ctx) => {
+    const box = el('div', 'block-chat');
+    const person = (look: Look, state: PortraitState, side: string, name: string) => {
+      const wrap = el('div', `chat-person ${side}`);
+      wrap.append(face(look, state), el('div', 'chat-name', name));
+      return wrap;
+    };
+    const alex = person(ALEX, 'sickly', 'is-alex', b.alexName);
+    const them = person(CHARACTERS[b.with.character] ?? CHARACTERS[0], b.with.mood === 'sad' ? 'sad' : 'healthy', 'is-them', b.with.name);
+    // Speed from characters.json → timing.
+    const pace = getContent().characters.timing;
+    const log = el('div', 'chat-log');
+    log.setAttribute('aria-live', 'polite');
+    const stage = el('div', 'chat-stage');
+    stage.append(alex, log, them);
+    const hint = el('div', 'chat-skip', b.skipHint);
+    box.append(stage, hint);
+
+    let i = 0;
+    let timer: number | undefined;
+    let typing: HTMLElement | null = null;
+    const speaking = (from: 'alex' | 'them' | null) => {
+      alex.classList.toggle('is-speaking', from === 'alex');
+      them.classList.toggle('is-speaking', from === 'them');
+    };
+    const message = (line: (typeof b.lines)[number]) => el('div', `chat-msg from-${line.from}`, line.text);
+    const show = (node: HTMLElement) => node.scrollIntoView?.({ block: 'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' });
+    const finish = () => {
+      window.clearTimeout(timer);
+      typing?.remove();
+      typing = null;
+      for (; i < b.lines.length; i++) log.append(message(b.lines[i]));
+      speaking(null);
+      hint.remove();
+      box.classList.add('is-done');
+    };
+    const next = () => {
+      if (i >= b.lines.length) return finish();
+      const line = b.lines[i];
+      speaking(line.from);
+      typing = el('div', `chat-msg from-${line.from} is-typing`);
+      typing.append(el('span', 'chat-dot'), el('span', 'chat-dot'), el('span', 'chat-dot'));
+      log.append(typing);
+      show(typing);
+      // Longer messages take a little longer to "type".
+      timer = window.setTimeout(
+        () => {
+          const msg = message(line);
+          typing?.replaceWith(msg);
+          typing = null;
+          show(msg);
+          i += 1;
+          timer = window.setTimeout(next, pace.pause);
+        },
+        Math.min(pace.typingMax, pace.typingBase + line.text.length * pace.typingPerLetter),
+      );
+    };
+    box.addEventListener('click', () => {
+      if (i < b.lines.length) finish();
+    });
+    if (reducedMotion()) finish();
+    else timer = window.setTimeout(next, 600);
+    ctx.onClose(() => window.clearTimeout(timer));
+    return box;
+  },
+
   text: (b) => el('p', 'block-text', b.text),
 
   stat: (b) => {

@@ -86,13 +86,16 @@ export const sectionRenderers: { [T in Section['type']]: Renderer<T> } = {
     for (const e of entries) {
       const item = el('li', 'bib-entry');
       const cite = el('p', 'bib-citation');
-      if (e.url) {
+      // Only the web address (or DOI) inside the citation is the link; the rest is plain text.
+      const linkText = e.url ? [e.url, e.url.replace(/^https?:\/\/(dx\.)?doi\.org\//, '')].find((t) => e.citation.includes(t)) : undefined;
+      if (e.url && linkText) {
+        const at = e.citation.indexOf(linkText);
         const a = document.createElement('a');
         a.href = e.url;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
-        a.textContent = e.citation;
-        cite.append(a);
+        a.textContent = linkText;
+        cite.append(e.citation.slice(0, at), a, e.citation.slice(at + linkText.length));
       } else {
         cite.textContent = e.citation;
       }

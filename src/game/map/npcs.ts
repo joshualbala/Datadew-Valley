@@ -1,6 +1,7 @@
+import { getContent } from '../../content/store';
 import Phaser from 'phaser';
 import type { Npc } from '../../content/schemas';
-import { TOWNSFOLK, WORKERS } from '../art/illustrations/common';
+import { TOWNSFOLK, WORKERS, CHARACTERS } from '../art/illustrations/common';
 import { makeTexture } from '../art/pixel';
 import { WALKER_H, WALKER_W, emote, walker, type Facing } from '../art/walker';
 import { audio } from '../audio/audioManager';
@@ -60,20 +61,28 @@ export class Townsfolk {
 
   constructor(
     private scene: Phaser.Scene,
-    npcs: Npc[],
+    placed: Npc[],
     private grid: ParsedMap,
   ) {
+    // People from characters.json stand still, with the look and mood set there.
+    const people = getContent().characters.characters;
+    const npcs: Npc[] = placed.map((n) => {
+      const c = n.character ? people[n.character] : undefined;
+      return c ? { ...n, role: 'character', look: c.look, mood: c.mood, stand: true } : n;
+    });
     makeTexture(scene, 'emote-sad', 9, 9, (p) => emote(p, 'sad'), MAP_SCALE);
     makeTexture(scene, 'cough-puff', 5, 4, (p) => p.rect(1, 0, 3, 4, 0xe8e8e0).rect(0, 1, 5, 2, 0xe8e8e0), MAP_SCALE);
 
+    // Nobody walks over (or stops in front of) someone standing still, like the farmer.
+    const standing = new Set(npcs.filter((n) => n.stand).flatMap((n) => [`${n.x},${n.y}`, `${n.x},${n.y + 1}`]));
     this.costAt = (x, y) => {
-      if (!grid.walkable(x, y)) return Infinity;
+      if (!grid.walkable(x, y) || standing.has(`${x},${y}`)) return Infinity;
       return WALK_COST[kinds[grid.kindAt(x, y)].ground] ?? 3;
     };
     this.findPlaces();
 
     npcs.forEach((cfg, i) => {
-      const looks = cfg.role === 'worker' ? WORKERS : TOWNSFOLK;
+      const looks = cfg.role === 'worker' ? WORKERS : cfg.role === 'character' ? CHARACTERS : TOWNSFOLK;
       const look = looks[cfg.look % looks.length];
       const key = `npc-${cfg.role}-${cfg.look}-${cfg.mood}`;
       for (const facing of ['down', 'up', 'side'] as const) {
@@ -97,7 +106,7 @@ export class Townsfolk {
         home,
         goal: null,
         path: [],
-        busy: 400 + i * 700, // stagger the first errands
+        busy: cfg.stand ? Infinity : 400 + i * 700, // stagger the first errands; standing people never leave
         inside: false,
         stepTime: 0,
         step: 0,
@@ -136,7 +145,7 @@ export class Townsfolk {
             { x: b.x - 1, y: b.y },
             { x: b.x + 1, y: b.y },
             { x: b.x, y: b.y - 1 },
-          ].find((t) => this.grid.walkable(t.x, t.y)) ?? null;
+          ].find((t) => this.costAt(t.x, t.y) < Infinity) ?? null; // a free spot, not where someone stands
       } else {
         const door = { x: b.x + (kinds[b.kind].door ?? Math.floor(b.w / 2)), y: b.y + b.h };
         spot = this.grid.walkable(door.x, door.y) ? door : null;

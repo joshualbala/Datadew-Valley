@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { HudWidget } from '../../content/schemas';
+import type { HudWidget, ReadableWidget } from '../../content/schemas';
 import { getContent } from '../../content/store';
 import { progress } from '../../state/progress';
 import { isPopupOpen, openPopup } from '../../ui/popup';
@@ -18,6 +18,8 @@ export interface HudContext {
   centersOf(kind: string): { x: number; y: number }[];
   /** The map's fixed noise (meter level and hum volume), if it sets one. */
   noise?: { level: number; volume: number };
+  /** Slow Alex down (1 = normal speed). */
+  setWalkSpeed?(factor: number): void;
 }
 
 export interface RunningWidget {
@@ -45,7 +47,7 @@ function panel(g: Phaser.GameObjects.Graphics, x: number, y: number, w: number, 
  */
 function makeReadable(
   scene: Phaser.Scene,
-  cfg: HudWidget,
+  cfg: ReadableWidget,
   target: Phaser.GameObjects.Container,
   badgeX: number,
   badgeY: number,
@@ -79,6 +81,7 @@ function makeReadable(
  * schema in content/schemas.ts (HudWidgetSchema), then a factory here.
  */
 export const widgetTypes: { [T in HudWidget['type']]: WidgetFactory<T> } = {
+  energy: energyWidget,
   /** Alex's portrait and name (top-left); click to read about their health. */
   portrait(scene, cfg, ctx) {
     const key = makeTexture(scene, `portrait-${cfg.state}`, PORTRAIT_SIZE, PORTRAIT_SIZE, (p) => portrait(p, ALEX, cfg.state), PX);
@@ -201,6 +204,75 @@ export const widgetTypes: { [T in HudWidget['type']]: WidgetFactory<T> } = {
     };
   },
 };
+
+/**
+ * Alex's energy (under the read counter): drains slowly everywhere and faster
+ * near the source (the data center's noise, lights and smog). It never runs
+ * out, but when it is low the bar turns red, says so, and Alex walks slower.
+ */
+function energyWidget(scene: Phaser.Scene, cfg: Extract<HudWidget, { type: 'energy' }>, ctx: HudContext): RunningWidget {
+  const sources = (Array.isArray(cfg.source) ? cfg.source : [cfg.source]).flatMap((kind) => ctx.centersOf(kind));
+  const range = cfg.range * ctx.tilePx;
+  const w = 190;
+  const h = 46;
+  const g = scene.add.graphics();
+  panel(g, 0, 0, w, h);
+  const label = scene.add
+    .text(12, 12, cfg.label, { fontFamily: FONT, fontSize: '24px', color: CREAM_TEXT, stroke: '#5b3a1e', strokeThickness: 4 })
+    .setOrigin(0, 0.5);
+  const bar = scene.add.graphics();
+  const BAR_X = 12;
+  const BAR_Y = 26;
+  const BAR_W = w - 24;
+  const BAR_H = 12;
+  const box = scene.add.container(20, 214, [g, label, bar]).setScrollFactor(0).setDepth(ctx.depth);
+  if (cfg.popup) {
+    box.setInteractive(new Phaser.Geom.Rectangle(-4, -4, w + 8, h + 8), Phaser.Geom.Rectangle.Contains);
+    if (box.input) box.input.cursor = 'pointer';
+    box.on('pointerdown', () => {
+      if (!isPopupOpen()) void openPopup(cfg.popup!);
+    });
+  }
+
+  let shown = -1;
+  let low = false;
+  const draw = (energy: number) => {
+    const pct = Math.round(energy);
+    if (pct === shown) return;
+    shown = pct;
+    const color = energy <= cfg.lowAt ? 0xe23b3b : energy <= 60 ? 0xf2c230 : 0x7bd17b;
+    bar.clear();
+    bar.fillStyle(WOOD_DARK).fillRect(BAR_X - 2, BAR_Y - 2, BAR_W + 4, BAR_H + 4);
+    bar.fillStyle(0x3a2412).fillRect(BAR_X, BAR_Y, BAR_W, BAR_H);
+    bar.fillStyle(color).fillRect(BAR_X, BAR_Y, Math.round((BAR_W * energy) / 100), BAR_H);
+    bar.fillStyle(0xffffff, 0.25).fillRect(BAR_X, BAR_Y, Math.round((BAR_W * energy) / 100), 3);
+    const isLow = energy <= cfg.lowAt;
+    if (isLow !== low) {
+      low = isLow;
+      label.setText(isLow ? cfg.lowLabel : cfg.label);
+      ctx.setWalkSpeed?.(isLow ? 0.75 : 1);
+    }
+  };
+  ctx.setWalkSpeed?.(progress.energy() <= cfg.lowAt ? 0.75 : 1);
+  low = progress.energy() <= cfg.lowAt;
+  label.setText(low ? cfg.lowLabel : cfg.label);
+  draw(progress.energy());
+
+  return {
+    update(px, py) {
+      if (isPopupOpen()) return; // time stands still while reading
+      let closest = Infinity;
+      for (const s of sources) closest = Math.min(closest, Phaser.Math.Distance.Between(px, py, s.x, s.y));
+      // Fixed-noise maps (inside the data center) count as right next to the source.
+      const near = ctx.noise ? 1 : Phaser.Math.Clamp(1 - closest / range, 0, 1);
+      const perMinute = cfg.drainPerMinute + cfg.nearDrainPerMinute * near;
+      const minutes = scene.game.loop.delta / 60000;
+      const next = Math.max(cfg.floor, progress.energy() - perMinute * minutes);
+      progress.setEnergy(next);
+      draw(next);
+    },
+  };
+}
 
 /** Create every widget in hud.json. */
 export function startHud(scene: Phaser.Scene, ctx: HudContext): RunningWidget[] {

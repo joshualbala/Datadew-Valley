@@ -17,6 +17,8 @@ export function startGame(parent: string): Phaser.Game {
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     // Only clicks on the canvas itself reach the game (not the site header or pop-up buttons laid over it).
     input: { windowEvents: false },
+    // All sound goes through our own audio manager (src/game/audio), so skip Phaser's: it costs ~0.2 s at startup.
+    audio: { noAudio: true },
     scene: [StartScene, TitleScene, SequenceScene, CardScene, MapScene],
   });
 }

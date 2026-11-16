@@ -10,6 +10,7 @@ Fields starting with `_` are notes for the team and never appear in the game.
 
 | File | Controls | Where you see it |
 |---|---|---|
+| `characters.json` | People Alex can talk to: names, conversations, notes, chat speed | Valley: Ruth and Councilmember Johnson |
 | `ui.json` → `start` | "Click anywhere to begin" text and the sound note | First screen (needed so the browser allows sound) |
 | `ui.json` → `title` | Game name, optional tagline, Enter button label, hint text | Opening page |
 | `ui.json` → `sequence` | "Click or press Enter to continue" hint and the Back button label | Intro slides (caption box) |
@@ -17,7 +18,7 @@ Fields starting with `_` are notes for the team and never appear in the game.
 | `sequences/intro.json` | The intro slides: each slide's caption and which picture it shows. Add, remove or reorder slides here. The pictures are drawn in code; the file's `_description` lists the available names | Intro slides |
 | `site.json` | The website: site name, header links, each page and its sections, the "please use a computer" notice | Header, every page |
 | `about.json` | The team on the About Us page: name, role, photo (or a pixel avatar), short bio | About Us |
-| `bibliography.json` | Annotated Bibliography entries (empty by default: the page then says so) | Annotated Bibliography |
+| `bibliography.json` | Bibliography entries (empty by default: the page then says so) | Annotated Bibliography |
 | `sequences/ending.json` | The ending slides (captions and pictures), shown once all 10 pop-ups are read | Ending |
 | `ui.json` → `reset` | The note shown after the first click on the Reset button (top-right in the game) | Game screen |
 | `ui.json` → `popup`, `map` | The pop-up "Continue" label, the "Press E" hint and the "x / N read" counter text | Pop-ups, game map |
@@ -55,3 +56,13 @@ Fields starting with `_` are notes for the team and never appear in the game.
 - **Reset:** the circular-arrow button in the game's top-right corner (click twice) clears progress and returns to the title. Finishing the ending also clears progress.
 - **Debug view:** open the site with `?debug=1` (e.g. `…/index.html?debug=1#/simulation`) to see hotspot ids, doors, people and Alex's tile on the map.
 - **Phones and small windows** see a "please use a computer" notice instead of the game.
+
+## Quick reference (newer features)
+- **People you can talk to** (Ruth the farmer, Councilmember Johnson): everything about them (name, title, outfit, mood, the conversation, the note and sources, and how fast chats play) is in `characters.json`. Where they stand is in `maps/valley.json` → `npcs` (`{ "character": "ruth", "x": .., "y": .. }`).
+- **The river well:** it's part of the river's pop-up (`maps/valley.json` → the `river-contamination` hotspot's `alsoAt`).
+- **Energy bar:** currently off. To bring it back, add an `energy` widget to `hud.json` (see its `_description`).
+- **Hint arrow:** `ui.json` → `map.hintAfterSeconds` (0 turns it off) and `map.hintLabel`.
+- **Signs in the ending pictures:** `sequences/ending.json` → each slide's `"signs"` (up to 2 short lines; `|` starts line 2).
+- **Data center sign over the gate:** `maps/valley.json` → `doors` → `sign`.
+- **About Us disclaimer:** `site.json` → `pages.about` → "A note on Datadew Valley".
+

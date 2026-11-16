@@ -60,10 +60,26 @@ export function walker(p: PixelPainter, look: Look, facing: Facing, frame: 0 | 1
   // Body; arms swing opposite to the legs.
   p.rect(1, 9, 9, 6, shirt).rect(8, 9, 2, 6, darker(shirt));
   if (style === 'long' && facing === 'up') p.rect(2, 9, 7, 3, hair).rect(3, 12, 5, 1, hair);
+  if (look.straps !== undefined) {
+    p.rect(3, 9, 1, 6, look.straps).rect(7, 9, 1, 6, look.straps); // overall straps
+    if (facing === 'down') p.rect(3, 12, 5, 3, look.straps).px(5, 13, darker(look.straps, 0.7)); // bib + pocket
+  }
+  if (look.tie !== undefined && facing === 'down') {
+    p.px(4, 9, 0xffffff).px(6, 9, 0xffffff).px(5, 9, look.tie).rect(5, 10, 1, 4, look.tie); // collar + tie
+  }
   const swing = frame === 0 ? 0 : frame === 1 ? -1 : 1;
   p.rect(0, 10, 1, 4 + swing, shirt).px(0, 14 + swing, skin);
   p.rect(10, 10, 1, 4 - swing, darker(shirt)).px(10, 14 - swing, skin);
   legsFront(p, look, frame);
+  if (look.hat !== undefined) hat(p, look.hat, 0);
+}
+
+/** A wide straw hat over the head (dx shifts it for the side view). */
+function hat(p: PixelPainter, color: number, dx: number): void {
+  p.rect(3 + dx, 0, 5, 2, color)
+    .rect(0 + dx, 2, 11, 1, color)
+    .rect(3 + dx, 1, 5, 1, darker(color, 0.8))
+    .rect(1 + dx, 3, 9, 1, darker(color, 0.85));
 }
 
 /** Legs seen from the front or back: trousers, or a skirt with bare legs. One foot lifts each step. */
@@ -106,7 +122,9 @@ function side(p: PixelPainter, look: Look, frame: 0 | 1 | 2): void {
   const leg = skirt ? skin : pants;
   if (skirt) p.rect(2, 15, 7, 3, pants).rect(1, 17, 9, 1, darker(pants, 0.85));
   else p.rect(3, 15, 5, 2, pants);
+  if (look.straps !== undefined) p.rect(4, 9, 1, 6, look.straps);
   const top = skirt ? 18 : 17;
+  if (look.hat !== undefined) hat(p, look.hat, 0);
   if (frame === 0) {
     p.rect(4, top, 3, 20 - top, leg).rect(2, 20, 5, 1, SHOE);
   } else {

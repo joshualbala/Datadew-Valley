@@ -4,7 +4,8 @@ import { screenGlow } from './screenGlow';
 import { townTogether } from './townTogether';
 import { dataCenterOpens } from './dataCenterOpens';
 import { townMeeting } from './townMeeting';
-import { valleyHome } from './valleyHome';
+import { townVote } from './townVote';
+import { valleyHome, valleyHomeAfter } from './valleyHome';
 
 export { PICTURE_H, PICTURE_W, gridOf, type Illustration, type IllustrationStage } from './common';
 
@@ -20,4 +21,6 @@ export const illustrations: Record<string, Illustration> = {
   'data-center-opens': dataCenterOpens,
   'town-together': townTogether,
   'screen-glow': screenGlow,
+  'town-vote': townVote,
+  'valley-home-after': valleyHomeAfter,
 };

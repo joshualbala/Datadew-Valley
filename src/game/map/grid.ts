@@ -1,5 +1,5 @@
 import type { MapContent } from '../../content/schemas';
-import { TOWNSFOLK, WORKERS } from '../art/illustrations/common';
+import { CHARACTERS, TOWNSFOLK, WORKERS } from '../art/illustrations/common';
 import { kinds, type Neighbors } from './kinds';
 
 export interface Block {
@@ -91,10 +91,17 @@ export function parseMap(map: MapContent): ParsedMap {
   }
   map.npcs.forEach((npc, i) => {
     if (!walkable(npc.x, npc.y)) errors.push(`Person ${i + 1} (column ${npc.x}, row ${npc.y}) must start on a walkable tile.`);
-    const looks = npc.role === 'worker' ? WORKERS : TOWNSFOLK;
+    const looks = npc.role === 'worker' ? WORKERS : npc.role === 'character' ? CHARACTERS : TOWNSFOLK;
     if (npc.look >= looks.length)
       errors.push(`Person ${i + 1} (${npc.role}) has look ${npc.look}; looks go from 0 to ${looks.length - 1}.`);
   });
+  // A "talk" marker needs someone standing still on its tile to talk to.
+  for (const spot of map.hotspots) {
+    if (spot.indicator !== 'talk') continue;
+    if (!map.npcs.some((n) => n.stand && n.x === spot.x && n.y === spot.y)) {
+      errors.push(`Hotspot "${spot.id}" is a "talk" marker, but no person with "stand": true is at column ${spot.x}, row ${spot.y}.`);
+    }
+  }
   map.doors.forEach((door, i) => {
     if (!reachable(door.x, door.y))
       errors.push(`Door ${i + 1} (to "${door.to}", column ${door.x}, row ${door.y}) must be on, or right next to, a walkable tile.`);

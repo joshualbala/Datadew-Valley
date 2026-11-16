@@ -14,8 +14,12 @@ const mix = (a: number, b: number, t: number) => {
  * center) = paler, greenish skin, dark circles, tired half-closed eyes, a
  * frown and a bead of sweat.
  */
-export function portrait(p: PixelPainter, look: Look, state: 'healthy' | 'sickly'): void {
+/** "healthy" (smiling), "sickly" (Alex after the data center: pale and tired) or "sad" (normal color, downcast). */
+export type PortraitState = 'healthy' | 'sickly' | 'sad';
+
+export function portrait(p: PixelPainter, look: Look, state: PortraitState): void {
   const sick = state === 'sickly';
+  const sad = state === 'sad';
   const skin = sick ? mix(look.skin, 0x9aa57a, 0.28) : look.skin;
   const shade = mix(skin, 0x000000, 0.25);
   const bg = sick ? 0x8e968a : 0x8fc7e8;
@@ -46,6 +50,16 @@ export function portrait(p: PixelPainter, look: Look, state: 'healthy' | 'sickly
   ])
     p.px(x, y, mix(look.hair, 0xffffff, 0.18));
 
+  // Outfit details for named characters: a straw hat, a collar and tie.
+  if (look.hat !== undefined) {
+    p.rect(7, 0, 12, 4, look.hat)
+      .rect(2, 4, 22, 2, look.hat)
+      .rect(7, 3, 12, 1, mix(look.hat, 0x000000, 0.25));
+  }
+  if (look.tie !== undefined) {
+    p.rect(9, 21, 3, 2, 0xffffff).rect(14, 21, 3, 2, 0xffffff).rect(12, 21, 2, 5, look.tie);
+  }
+
   if (sick) {
     // Tired, half-closed eyes with dark circles.
     p.rect(8, 12, 3, 1, eye).rect(15, 12, 3, 1, eye);
@@ -55,6 +69,11 @@ export function portrait(p: PixelPainter, look: Look, state: 'healthy' | 'sickly
     p.rect(11, 16, 4, 1, 0x3a1812).px(10, 17, 0x3a1812).px(15, 17, 0x3a1812);
     // Sweat drop.
     p.px(20, 8, 0xbfe6ff).rect(20, 9, 2, 2, 0x8fd0f5);
+  } else if (sad) {
+    // Downcast: eyes looking down under drooping brows, a frown.
+    p.rect(9, 12, 2, 1, eye).rect(15, 12, 2, 1, eye);
+    p.px(8, 10, shade).px(9, 9, shade).px(17, 10, shade).px(16, 9, shade);
+    p.rect(11, 16, 4, 1, 0x3a1812).px(10, 17, 0x3a1812).px(15, 17, 0x3a1812);
   } else {
     p.rect(9, 11, 2, 2, eye).rect(15, 11, 2, 2, eye).px(9, 11, 0xffffff).px(15, 11, 0xffffff);
     p.rect(8, 14, 2, 1, 0xf28b82, 0.5).rect(16, 14, 2, 1, 0xf28b82, 0.5);

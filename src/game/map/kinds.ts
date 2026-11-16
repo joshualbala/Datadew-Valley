@@ -67,8 +67,14 @@ export interface Sprite {
 }
 
 export interface Kind {
-  /** Ground painted under this tile (a key of `grounds`). */
+  /**
+   * Ground under this tile (a key of `grounds`). For things standing on the
+   * ground (trees, benches, buildings) this is only a fallback: they take the
+   * ground around them so they never sit on a mismatched square (see effectiveGrounds).
+   */
   ground: keyof typeof grounds;
+  /** Always paint `ground` under this object, even if the surroundings differ (a door in a wall, a car's driveway). */
+  fixedGround?: boolean;
   walkable: boolean;
   /** Footprint in tiles for buildings (the letter fills a w×h block in the grid). Default 1×1. */
   size?: [number, number];
@@ -388,6 +394,9 @@ const rockSprite: Sprite = {
   },
 };
 
+/** Well water: murky brown (the town's water is contaminated). */
+const WELL_WATER = { base: 0x7a5528, dark: 0x5c3d1a, light: 0xa07440 };
+
 const wellSprite: Sprite = {
   w: 18,
   h: 26,
@@ -396,7 +405,8 @@ const wellSprite: Sprite = {
     for (let i = 0; i < 5; i++) p.rect(4 - i, i, 10 + i * 2, 1, i % 2 ? 0xa8463a : 0xc0473a);
     p.rect(2, 5, 2, 10, 0x6b4423).rect(14, 5, 2, 10, 0x6b4423).rect(4, 8, 10, 1, 0xa8743e);
     p.rect(8, 9, 1, 5, 0x3a3a3a).rect(7, 13, 3, 2, 0xa8743e);
-    p.rect(0, 15, 18, 10, C.stone).rect(0, 15, 18, 2, C.stoneShade).rect(2, 17, 14, 2, 0x2f4f6f);
+    p.rect(0, 15, 18, 10, C.stone).rect(0, 15, 18, 2, C.stoneShade).rect(2, 17, 14, 2, WELL_WATER.base);
+    p.rect(4, 17, 3, 1, WELL_WATER.light).px(11, 18, WELL_WATER.dark).px(12, 18, WELL_WATER.dark); // murky brown water
     for (let x = 0; x < 18; x += 5) p.rect(x, 20, 1, 5, C.stoneDark);
     p.rect(0, 22, 18, 1, C.stoneDark);
   },
@@ -459,7 +469,7 @@ export const kinds: Record<string, Kind> = {
   extinguisher: { ground: 'floor', walkable: false, object: prop(16, 22, extinguisher, -1) },
   vent: { ground: 'vent', walkable: true },
   wall: { ground: 'wall', walkable: false },
-  'exit-door': { ground: 'wall', walkable: false, object: prop(16, 32, exitDoor, 0) },
+  'exit-door': { ground: 'wall', fixedGround: true, walkable: false, object: prop(16, 32, exitDoor, 0) },
   'server-rack': {
     ground: 'floor',
     walkable: false,
@@ -519,7 +529,7 @@ export const kinds: Record<string, Kind> = {
   lamp: { ground: 'sidewalk', walkable: false, object: prop(8, 36, streetLamp) },
   hydrant: { ground: 'sidewalk', walkable: false, object: prop(9, 12, hydrant) },
   /** Parked car on a concrete driveway: 2×1 tiles. */
-  car: { ground: 'sidewalk', walkable: false, size: [2, 1], object: variedProp(34, 18, car, -1) },
+  car: { ground: 'sidewalk', fixedGround: true, walkable: false, size: [2, 1], object: variedProp(34, 18, car, -1) },
 
   // Buildings.
   /** Alex's cottage: 3×2 tiles. */
@@ -559,6 +569,46 @@ export const kinds: Record<string, Kind> = {
     object: () => ({ w: 148, h: 84, sink: 2, draw: (p) => dataCenter(p, 10, 78) }),
   },
 };
+
+/** Grounds that objects never borrow from their surroundings (nothing stands in a river or a road). */
+const NOT_BORROWED = new Set(['water', 'bridge', 'road']);
+
+/**
+ * The ground actually painted under each tile, as a plain ground kind name
+ * ("grass", "sidewalk"...). Plain ground tiles keep their own. Things standing
+ * on the ground take the most common plain ground around them (searching up to
+ * 4 tiles out, so big buildings work too), so a bench on the plaza sits on
+ * stone and a tree on cleared land sits on dirt, without a square of grass.
+ */
+export function effectiveGrounds(w: number, h: number, kindAt: (x: number, y: number) => string): (x: number, y: number) => string {
+  const out: string[] = new Array(w * h).fill('');
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const k = kinds[kindAt(x, y)];
+      if (!k) continue;
+      let ground: string = k.ground;
+      if (k.object && !k.fixedGround) {
+        for (let r = 1; r <= 4; r++) {
+          const counts = new Map<string, number>();
+          for (let dy = -r; dy <= r; dy++) {
+            for (let dx = -r; dx <= r; dx++) {
+              if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+              const nk = kinds[kindAt(x + dx, y + dy)];
+              if (!nk || nk.object || NOT_BORROWED.has(nk.ground)) continue;
+              counts.set(nk.ground, (counts.get(nk.ground) ?? 0) + 1);
+            }
+          }
+          if (counts.size) {
+            ground = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+            break;
+          }
+        }
+      }
+      out[y * w + x] = ground;
+    }
+  }
+  return (x, y) => (x < 0 || y < 0 || x >= w || y >= h ? '' : out[y * w + x]);
+}
 
 /** Paint the ground for one tile (p is already offset to the tile's top-left). `dry` 0–1 withers grass. */
 export function paintGround(p: PixelPainter, kind: string, n: Neighbors, rng: Rng, dry = 0): void {

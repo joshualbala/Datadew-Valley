@@ -5,31 +5,21 @@
   "people": [
     {
       "_location": "About Us, person 1",
-      "name": "PLACEHOLDER Name",
-      "role": "PLACEHOLDER: Role",
-      "image": "",
-      "description": "PLACEHOLDER: A short bio: year, concentration, and what they worked on."
+      "name": "Alondra Perez",
+      "image": "assets/about_us/Alondra.png",
+      "description": "Heyy! I’m a senior at Brown University concentrating in computer science and interested in the interaction between society and technology, which is why I’m going into software engineering. Outside of CS, I love hobby-maxxing, especially arts and crafts!"
     },
     {
       "_location": "About Us, person 2",
-      "name": "PLACEHOLDER Name",
-      "role": "PLACEHOLDER: Role",
-      "image": "",
-      "description": "PLACEHOLDER: A short bio: year, concentration, and what they worked on."
+      "name": "Joshua Bala",
+      "image": "assets/about_us/Josh.png",
+      "description": "What's up!! I’m a senior at Brown University studying computer science. I am an aspiring software engineer and have had a lot of experience working on backend systems. Outside of work, I love to play basketball, watch movies, crochet, and eat sushi!!"
     },
     {
       "_location": "About Us, person 3",
-      "name": "PLACEHOLDER Name",
-      "role": "PLACEHOLDER: Role",
-      "image": "",
-      "description": "PLACEHOLDER: A short bio: year, concentration, and what they worked on."
-    },
-    {
-      "_location": "About Us, person 4",
-      "name": "PLACEHOLDER Name",
-      "role": "PLACEHOLDER: Role",
-      "image": "",
-      "description": "PLACEHOLDER: A short bio: year, concentration, and what they worked on."
+      "name": "Eden Lewis",
+      "image": "assets/about_us/Eden.png",
+      "description": "HI! I am a senior at Brown University studying Environmental Science with a minor in Data Science. I am interested in spatial and environmental modeling as well as understanding the roles of AI in shaping our physical environment. Outside of school, I am on the club volleyball team. I love to hangout with friends and drink boba."
     }
   ]
 }

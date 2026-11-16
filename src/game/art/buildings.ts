@@ -157,16 +157,19 @@ export function dataCenter(p: PixelPainter, x: number, y: number): void {
   for (let ly = top + 9; ly < top + 17; ly += 2) p.rect(x + 4, ly, w - 8, 1, C.dcDarker);
   p.rect(x + 4, top + 8, w - 8, 1, C.dcDark).rect(x + 4, top + 17, w - 8, 1, C.dcDark);
 
-  // Entrance with canopy and glass doors.
-  const ex = x + 12;
-  p.rect(ex - 3, top + 22, 28, 3, C.dcDarker);
-  p.rect(ex, top + 25, 22, h - 25, C.dcDarker)
-    .rect(ex + 1, top + 26, 9, h - 26, C.dcGlass)
-    .rect(ex + 12, top + 26, 9, h - 26, C.dcGlass);
-  p.px(ex + 2, top + 27, C.glassHi)
-    .px(ex + 3, top + 28, C.glassHi)
-    .px(ex + 13, top + 27, C.glassHi)
-    .px(ex + 14, top + 28, C.glassHi);
+  // Entrance: a wide canopy over big glass double doors, so it reads clearly as the way in.
+  const ex = x + 10;
+  p.rect(ex - 4, top + 18, 36, 3, C.dcDarker).rect(ex - 4, top + 18, 36, 1, C.dcDark);
+  p.rect(ex, top + 21, 28, h - 21, C.dcDarker)
+    .rect(ex + 1, top + 22, 12, h - 22, C.dcGlass)
+    .rect(ex + 15, top + 22, 12, h - 22, C.dcGlass);
+  p.rect(ex + 11, top + 30, 1, 4, C.dcDarker).rect(ex + 16, top + 30, 1, 4, C.dcDarker); // handles
+  p.px(ex + 2, top + 23, C.glassHi)
+    .px(ex + 3, top + 24, C.glassHi)
+    .px(ex + 4, top + 25, C.glassHi)
+    .px(ex + 16, top + 23, C.glassHi)
+    .px(ex + 17, top + 24, C.glassHi)
+    .px(ex + 18, top + 25, C.glassHi);
 
   // Logo panel: blue square with a little white cloud.
   const lx = x + 46;
@@ -187,13 +190,20 @@ export function dataCenter(p: PixelPainter, x: number, y: number): void {
   const fx0 = x - 8;
   const fx1 = x + w + 6;
   const fTop = y - 10;
+  // The gate in front of the entrance stands open (no mesh), with sturdy posts either side.
+  const gx0 = ex - 3;
+  const gx1 = ex + 31;
+  const inGate = (fx: number) => fx > gx0 && fx < gx1;
   for (let fy = fTop + 1; fy < y + 4; fy++) {
-    for (let fx = fx0; fx < fx1; fx++) if ((fx + fy) % 4 === 0 || (fx - fy) % 4 === 0) p.px(fx, fy, C.fenceMesh, 0.8);
+    for (let fx = fx0; fx < fx1; fx++) {
+      if (!inGate(fx) && ((fx + fy) % 6 === 0 || (fx - fy) % 6 === 0)) p.px(fx, fy, C.fenceMesh, 0.4);
+    }
   }
-  p.rect(fx0, fTop, fx1 - fx0, 1, C.fence);
-  for (let fx = fx0; fx <= fx1; fx += 12) p.rect(fx, fTop - 3, 2, 17, C.fence);
+  p.rect(fx0, fTop, gx0 - fx0, 1, C.fence).rect(gx1, fTop, fx1 - gx1, 1, C.fence);
+  for (let fx = fx0; fx <= fx1; fx += 12) if (!inGate(fx) && !inGate(fx + 1)) p.rect(fx, fTop - 3, 2, 17, C.fence);
   // Barbed wire.
-  for (let fx = fx0; fx < fx1; fx++) p.px(fx, fTop - 3 + (fx % 4 < 2 ? 0 : 1), C.dcDarker);
-  // Gate.
-  p.rect(x + 8, fTop, 2, 14, C.fence).rect(x + 26, fTop, 2, 14, C.fence);
+  for (let fx = fx0; fx < fx1; fx++) if (!inGate(fx)) p.px(fx, fTop - 3 + (fx % 4 < 2 ? 0 : 1), C.dcDarker);
+  // Gate posts.
+  p.rect(gx0 - 1, fTop - 5, 3, 19, C.dcDarker).rect(gx1 - 1, fTop - 5, 3, 19, C.dcDarker);
+  p.rect(gx0 - 1, fTop - 5, 3, 2, C.hazard).rect(gx1 - 1, fTop - 5, 3, 2, C.hazard);
 }

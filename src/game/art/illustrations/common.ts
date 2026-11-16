@@ -37,6 +37,8 @@ export interface IllustrationStage {
   y(artY: number): number;
   /** Run `fn` every `ms` milliseconds while the slide is showing. */
   every(ms: number, fn: () => void): void;
+  /** Words for the signs in this picture, from the slide's "signs" in the sequence file (may be empty). */
+  signs: string[];
 }
 
 /**
@@ -304,6 +306,12 @@ export interface Look {
   pants: number;
   hairStyle?: HairStyle;
   bottom?: 'pants' | 'skirt';
+  /** Wide-brimmed hat color (e.g. a farmer's straw hat). */
+  hat?: number;
+  /** Necktie color (a suit: pair with a dark `shirt` as the jacket). */
+  tie?: number;
+  /** Overall straps and bib color (usually the same as `pants`). */
+  straps?: number;
 }
 
 /** Alex's look, kept the same in every picture (and later the game sprite). Gender-neutral on purpose. */
@@ -326,6 +334,15 @@ export const TOWNSFOLK: readonly Look[] = [
   { hair: 0x3d2b1f, skin: 0xa86b3c, shirt: 0x9b2335, pants: 0x264653, hairStyle: 'ponytail' },
 ];
 
+/**
+ * Named characters with their own outfits (map NPCs with role "character"):
+ * 0 = the farmer (straw hat, overalls), 1 = the town council member (suit and tie).
+ */
+export const CHARACTERS: readonly Look[] = [
+  { hair: 0x9a9a9a, skin: 0xc68642, shirt: 0xb5523b, pants: 0x3b5b92, hairStyle: 'short', hat: 0xe0b85a, straps: 0x3b5b92 },
+  { hair: 0x2b1d14, skin: 0x8d5524, shirt: 0x2f3a4f, pants: 0x2f3a4f, hairStyle: 'bun', tie: 0x2e86de },
+];
+
 /** Data center workers in lab coats: women and men, varied skin tones and ages. */
 export const WORKERS: readonly Look[] = [
   { hair: 0x2b1d14, skin: 0xc68642, shirt: 0xeef1f5, pants: 0x3a3f46, hairStyle: 'short' },
@@ -339,7 +356,7 @@ export const WORKERS: readonly Look[] = [
 const darker = (c: number, f = 0.75) =>
   (Math.round(((c >> 16) & 0xff) * f) << 16) | (Math.round(((c >> 8) & 0xff) * f) << 8) | Math.round((c & 0xff) * f);
 
-export type Pose = 'stand' | 'point' | 'wave-in' | 'wave-mid' | 'wave-out';
+export type Pose = 'stand' | 'point' | 'wave-in' | 'wave-mid' | 'wave-out' | 'hold';
 export type Mood = 'happy' | 'neutral' | 'worried' | 'upset';
 
 /**
@@ -395,6 +412,10 @@ export function person(p: PixelPainter, look: Look, pose: Pose = 'stand', mood: 
     case 'wave-out':
       p.px(10, 9, shirt).px(11, 8, skin).px(12, 7, skin).px(13, 6, skin).rect(13, 4, 2, 2, skin);
       break;
+    case 'hold':
+      // Right arm raised, gripping a sign's stick just above the shoulder (see HOLD_HAND).
+      p.rect(10, 5, 1, 5, darker(shirt)).rect(9, 3, 2, 2, skin);
+      break;
   }
 
   // Legs and shoes.
@@ -406,6 +427,9 @@ export function person(p: PixelPainter, look: Look, pose: Pose = 'stand', mood: 
   }
   p.rect(2, 20, 3, 1, 0x3a2412).rect(6, 20, 3, 1, 0x3a2412);
 }
+
+/** Where a person in the 'hold' pose grips a stick: the hand's center column and top row, in their own pixels. */
+export const HOLD_HAND = { x: 10, y: 3 };
 
 /** Make `who` wave side to side: sprites cycled in place (in, mid, out, mid). Returns them for extra tweens. */
 export function wavingPerson(stage: IllustrationStage, key: string, who: Look, x: number, y: number, mood: Mood = 'happy') {

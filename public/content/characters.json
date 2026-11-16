@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "_description": "People Alex can talk to. Each character (the key, e.g. \"ruth\", is used to place them on a map): 'name' (short name under their face in the chat), 'title' (heading of the conversation pop-up), 'look' (built-in outfit: 0 = farmer with straw hat and overalls, 1 = council member in a suit and tie), 'mood' (\"sad\", \"angry\" or \"neutral\": their face on the map and in the chat), 'button' (label of the closing button), 'lines' (the conversation in order; 'from' is \"alex\" or \"them\"), 'after' (blocks shown under the conversation, e.g. a note and citations; same block types as popups.json), 'countsTowardCompletion' (default true). To put someone on a map, add { \"character\": \"ruth\", \"x\": .., \"y\": .. } to that map's 'npcs': they stand there and a speech bubble appears over them. 'timing' sets how fast conversations play, in milliseconds: before each message a \"typing\" bubble shows for typingBase + typingPerLetter × the message length (at most typingMax), then 'pause' passes before the next message.",
+  "_usedIn": "Simulation page → the valley (talking to people) and the conversation pop-ups",
+  "timing": {
+    "typingBase": 900,
+    "typingPerLetter": 22,
+    "typingMax": 3200,
+    "pause": 1200
+  },
+  "characters": {
+    "ruth": {
+      "_location": "The park, beside the well (valley map)",
+      "name": "Ruth",
+      "title": "Ruth, a farmer",
+      "look": 0,
+      "mood": "sad",
+      "button": "Thanks, Ruth",
+      "lines": [
+        {
+          "from": "alex",
+          "text": "Hi Ruth. Are you okay? You look worn out."
+        },
+        {
+          "from": "them",
+          "text": "I’ve been carrying buckets all morning. My family has farmed this valley for three generations, and lately our well hasn't been giving us nearly enough water."
+        },
+        {
+          "from": "alex",
+          "text": "Do you think it’s because of the new data center?"
+        },
+        {
+          "from": "them",
+          "text": "I don't know. That's what worries me. Nobody ever told us how much water that place would need, or whether it would affect our wells."
+        },
+        {
+          "from": "alex",
+          "text": "I still can't believe they approved something this big without giving us a proper chance to speak."
+        },
+        {
+          "from": "them",
+          "text": "Exactly. All we wanted was a chance to ask questions. What happens to our water? Our electricity bills? Our farms? Nobody seemed to have answers."
+        },
+        {
+          "from": "alex",
+          "text": "I've heard some neighbors are organizing to bring these concerns back to the council."
+        },
+        {
+          "from": "them",
+          "text": "Good. Other communities have made their voices heard. We deserve that chance too."
+        }
+      ],
+      "after": [
+        {
+          "type": "citation",
+          "text": "Kollar and Danielak, 2026"
+        }
+      ]
+    },
+    "johnson": {
+      "_location": "Town plaza, by the town hall (valley map)",
+      "name": "James Johnson",
+      "title": "Councilmember Johnson",
+      "look": 1,
+      "mood": "sad",
+      "button": "Thanks for talking",
+      "lines": [
+        {
+          "from": "alex",
+          "text": "Councilmember Johnson, why did the council agree to the data center?"
+        },
+        {
+          "from": "them",
+          "text": "They promised jobs and resources that would benefit our local economy. Most of those jobs ended up being short term with a focus on construction."
+        },
+        {
+          "from": "alex",
+          "text": "Did anyone know what we were agreeing to?"
+        },
+        {
+          "from": "them",
+          "text": "We signed a Community Benefits Agreement before we even knew of the impacts of the data center. Their lobbyists were in my office every week and pushing us to sign the document."
+        },
+        {
+          "from": "alex",
+          "text": "My water is brown and my bills keep going up."
+        },
+        {
+          "from": "them",
+          "text": "I hear that every day now. So I'm co-sponsoring a new bill: the data center has to report its water and power use and pay for the damages it has caused. Next time, this town gets the facts before the signing."
+        }
+      ],
+      "after": [
+        {
+          "type": "citation",
+          "text": "Berglund and Miles, 2025"
+        }
+      ]
+    }
+  }
+}

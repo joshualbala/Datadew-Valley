@@ -19,6 +19,8 @@ export class Player {
   private keys: Record<'W' | 'A' | 'S' | 'D' | 'UP' | 'DOWN' | 'LEFT' | 'RIGHT', Phaser.Input.Keyboard.Key>;
   private facing: Facing = 'down';
   private stepTime = 0;
+  /** Multiplies walking speed (e.g. below 1 when Alex is exhausted). */
+  speedFactor = 1;
   private step = 0;
 
   constructor(
@@ -62,7 +64,7 @@ export class Player {
     }
 
     const len = Math.hypot(dx, dy);
-    const dist = (SPEED * deltaMs) / 1000;
+    const dist = (SPEED * this.speedFactor * deltaMs) / 1000;
     const mx = (dx / len) * dist;
     const my = (dy / len) * dist;
     // Move one axis at a time so Alex slides along walls instead of sticking.

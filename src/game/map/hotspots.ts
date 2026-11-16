@@ -8,6 +8,7 @@ import { audio } from '../audio/audioManager';
 import { FONT } from '../constants';
 import { INK, PARCHMENT, WOOD_DARK } from '../ui/theme';
 import type { ParsedMap } from './grid';
+import { addGlow } from './glow';
 import { MAP_SCALE, TILE } from './kinds';
 
 const TILE_PX = TILE * MAP_SCALE;
@@ -15,7 +16,7 @@ const RANGE = TILE_PX * 1.75; // how close Alex must be to read a hotspot
 const MARKER_DEPTH = 100000;
 
 /** What floats above a hotspot: texture key per indicator. */
-const INDICATORS: Record<Hotspot['indicator'], string> = { '!': 'marker-bang', '-$': 'marker-owe' };
+const INDICATORS: Record<Hotspot['indicator'], string> = { '!': 'marker-bang', '-$': 'marker-owe', talk: 'marker-talk' };
 
 interface Marker {
   spot: Hotspot;
@@ -23,6 +24,8 @@ interface Marker {
   /** Points (screen px) Alex can stand near to read it: the marker itself, or every tile of its area. */
   points: { x: number; y: number }[];
   glow?: Phaser.GameObjects.Image;
+  /** Soft light on the ground under a point marker, so places to explore stand out. */
+  halo?: Phaser.GameObjects.Image;
 }
 
 /**
@@ -35,6 +38,8 @@ export class HotspotMarkers {
   private markers: Marker[] = [];
   private hint: Phaser.GameObjects.Container;
   private near: Marker | null = null;
+  private hintLabel!: Phaser.GameObjects.Text;
+  private hintBg!: Phaser.GameObjects.Rectangle;
 
   constructor(
     private scene: Phaser.Scene,
@@ -48,15 +53,18 @@ export class HotspotMarkers {
       const x = (spot.x + 0.5) * TILE_PX;
       const y = (spot.y + 0.5) * TILE_PX;
       // Float higher over things that stand on their tile (a mailbox), lower over open ground.
-      const lift = grid.walkable(spot.x, spot.y) || spot.area ? 0.55 : 1.15;
+      // A speech bubble floats over the head of the person standing there.
+      const lift = spot.indicator === 'talk' ? 1.85 : grid.walkable(spot.x, spot.y) || spot.area ? 0.55 : 1.15;
       const img = scene.add
         .image(x, y - TILE_PX * lift, INDICATORS[spot.indicator])
         .setDepth(MARKER_DEPTH)
         .setInteractive({ useHandCursor: true });
       scene.tweens.add({ targets: img, y: img.y - 8, duration: 600, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
       const marker: Marker = { spot, img, points: [{ x, y }] };
-      if (spot.area) {
-        const tiles = grid.tilesOf(spot.area);
+      // Glow on the ground under the marker (area hotspots glow over their whole area instead).
+      if (!spot.area) marker.halo = addGlow(scene, x, y + TILE_PX * 0.15, TILE_PX * 1.1, 0xffd23f, MARKER_DEPTH - 2);
+      if (spot.area || spot.alsoAt.length) {
+        const tiles = [...(spot.area ? grid.tilesOf(spot.area) : []), ...spot.alsoAt];
         marker.points = tiles.map((t) => ({ x: (t.x + 0.5) * TILE_PX, y: (t.y + 0.5) * TILE_PX }));
         marker.glow = this.makeGlow(spot, tiles, grid);
       }
@@ -68,6 +76,8 @@ export class HotspotMarkers {
 
     const label = scene.add.text(0, 0, getContent().ui.map.interactHint, { fontFamily: FONT, fontSize: '24px', color: INK }).setOrigin(0.5);
     const bg = scene.add.rectangle(0, 0, label.width + 18, label.height + 4, PARCHMENT).setStrokeStyle(3, WOOD_DARK);
+    this.hintLabel = label;
+    this.hintBg = bg;
     this.hint = scene.add
       .container(0, 0, [bg, label])
       .setDepth(MARKER_DEPTH + 1)
@@ -76,6 +86,11 @@ export class HotspotMarkers {
     scene.input.keyboard?.on('keydown-E', () => {
       if (this.near && !isPopupOpen()) this.read(this.near);
     });
+  }
+
+  /** Where the unread markers on this map are (screen px), for the hint arrow. */
+  unreadPoints(): { x: number; y: number }[] {
+    return this.markers.map((m) => ({ x: m.img.x, y: m.img.y }));
   }
 
   /** Is Alex close enough to read a marker right now? */
@@ -96,6 +111,12 @@ export class HotspotMarkers {
           bestDist = d;
         }
       }
+    }
+    if (best !== this.near && best) {
+      // "Press E" for a marker, "Press E to talk" for a person.
+      const ui = getContent().ui.map;
+      this.hintLabel.setText(best.spot.indicator === 'talk' ? ui.talkHint : ui.interactHint);
+      this.hintBg.setSize(this.hintLabel.width + 18, this.hintLabel.height + 4);
     }
     if (best !== this.near) {
       if (this.near?.glow) this.scene.tweens.add({ targets: this.near.glow, alpha: 0, duration: 300 });
@@ -118,6 +139,11 @@ export class HotspotMarkers {
       marker.img.disableInteractive();
       this.scene.tweens.killTweensOf(marker.img);
       this.scene.tweens.add({ targets: marker.img, scale: 1.6, alpha: 0, duration: 250, onComplete: () => marker.img.destroy() });
+      const halo = marker.halo;
+      if (halo) {
+        this.scene.tweens.killTweensOf(halo);
+        this.scene.tweens.add({ targets: halo, alpha: 0, duration: 400, onComplete: () => halo.destroy() });
+      }
       const glow = marker.glow;
       if (glow) {
         this.scene.tweens.killTweensOf(glow);
@@ -129,7 +155,8 @@ export class HotspotMarkers {
   /** A soft colored highlight over every tile of the area, brighter along its edges (hidden until Alex is near). */
   private makeGlow(spot: Hotspot, tiles: { x: number; y: number }[], grid: ParsedMap): Phaser.GameObjects.Image {
     const color = Number.parseInt(spot.highlightColor.slice(1), 16);
-    const inArea = (x: number, y: number) => grid.kindAt(x, y) === spot.area;
+    const inArea = (x: number, y: number) =>
+      (spot.area !== undefined && grid.kindAt(x, y) === spot.area) || spot.alsoAt.some((t) => t.x === x && t.y === y);
     const key = makeTexture(
       this.scene,
       `glow-${spot.id}`,
@@ -163,6 +190,19 @@ function makeIndicatorTextures(scene: Phaser.Scene): void {
       p.rect(1, 0, 5, 10, outline).rect(1, 11, 5, 3, outline);
       p.rect(2, 1, 3, 8, 0xffd23f).rect(2, 12, 3, 1, 0xffd23f);
       p.rect(2, 1, 1, 7, 0xfff2a8).px(4, 8, 0xd9a21b);
+    },
+    MAP_SCALE,
+  );
+  // Speech bubble with "...": someone to talk to.
+  makeTexture(
+    scene,
+    'marker-talk',
+    15,
+    13,
+    (p) => {
+      p.rect(1, 0, 13, 9, outline).rect(0, 1, 15, 7, outline).rect(3, 9, 4, 2, outline).rect(3, 11, 2, 2, outline);
+      p.rect(2, 1, 11, 7, 0xfff4d6).rect(1, 2, 13, 5, 0xfff4d6).rect(4, 8, 2, 2, 0xfff4d6).px(4, 10, 0xfff4d6);
+      p.rect(4, 4, 2, 2, outline).rect(7, 4, 2, 2, outline).rect(10, 4, 2, 2, outline);
     },
     MAP_SCALE,
   );

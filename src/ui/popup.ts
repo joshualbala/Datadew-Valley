@@ -1,5 +1,6 @@
 import { getContent } from '../content/store';
 import { audio } from '../game/audio/audioManager';
+import { CHARACTER_POPUP, characterPopup } from '../content/characters';
 import { renderBlock } from './blocks';
 
 /**
@@ -17,7 +18,7 @@ export function isPopupOpen(): boolean {
 
 /** Show pop-up `id`; resolves when the player presses Continue (or Enter / Space / Esc). */
 export function openPopup(id: string): Promise<void> {
-  const popup = getContent().popups.popups[id];
+  const popup = id.startsWith(CHARACTER_POPUP) ? characterPopup(id.slice(CHARACTER_POPUP.length)) : getContent().popups.popups[id];
   if (!popup) {
     console.warn(`No pop-up "${id}" in popups.json`);
     return Promise.resolve();
